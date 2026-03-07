@@ -69,49 +69,39 @@ protected:
     long consumerId = 2;
     std::string asset = "TEST_ASSET";
     unsigned short maxPrice = 200;
-    tick appetiteCoef = tick(10);
+    tick hungerDelay = tick(10);
 };
 
 TEST_F(ConsumerTest, FirstActionInitializesConsumptionTime) {
-    Consumer consumer(consumerId, asset, maxPrice, appetiteCoef);
+    Consumer consumer(consumerId, asset, maxPrice, hungerDelay);
     Observation obs;
     obs.time = tick(100);
 
-    // First call initializes lastConsumed to 100
-    // Time since consumption = 0
-    // Price = sigmoidHunger(0) = 0?
-    // fast_sigmoid(0) = 0.
-    
     Action act = consumer.policy(obs);
     
     EXPECT_TRUE(act.placeOrder);
     EXPECT_EQ(act.order.side, BUY);
-    EXPECT_EQ(act.order.price, 0);
+    EXPECT_EQ(act.order.price, maxPrice);
     EXPECT_FALSE(act.cancelOrder);
 }
 
 TEST_F(ConsumerTest, GetsHungrierOverTime) {
-    Consumer consumer(consumerId, asset, maxPrice, appetiteCoef);
+    Consumer consumer(consumerId, asset, maxPrice, hungerDelay);
     Observation obs1;
     obs1.time = tick(100);
     consumer.policy(obs1); // Init lastConsumed = 100
     
     Observation obs2;
     obs2.time = tick(120); // 20 ticks later
-    // appetiteCoef = 10.
-    // x = 20 / 10 = 2.
-    // fast_sigmoid(2) = 2 / (1+2) = 2/3.
-    // price = 2/3 * 200 = 133.
-    
+
     Action act = consumer.policy(obs2);
     
     EXPECT_TRUE(act.placeOrder);
-    // Integer division in C++: 133
-    EXPECT_NEAR(act.order.price, 133, 1);
+    EXPECT_EQ(act.order.price, maxPrice);
 }
 
 TEST_F(ConsumerTest, CancelsPreviousOrder) {
-    Consumer consumer(consumerId, asset, maxPrice, appetiteCoef);
+    Consumer consumer(consumerId, asset, maxPrice, hungerDelay);
     Observation obs1; 
     obs1.time = tick(100);
     
@@ -128,7 +118,7 @@ TEST_F(ConsumerTest, CancelsPreviousOrder) {
 }
 
 TEST_F(ConsumerTest, ConsumingResetsHunger) {
-    Consumer consumer(consumerId, asset, maxPrice, appetiteCoef);
+    Consumer consumer(consumerId, asset, maxPrice, hungerDelay);
     Observation obs1;
     obs1.time = tick(100);
     consumer.policy(obs1); // init
@@ -143,16 +133,7 @@ TEST_F(ConsumerTest, ConsumingResetsHunger) {
     // Next policy call at 155
     Observation obs2;
     obs2.time = tick(155);
-    // Time since = 5.
-    // x = 5 / 10 = 0 (integer division of ticks).
-    // wait, tick division likely calls raw() division.
-    // 5/10 = 0.
-    // sig(0) = 0.
-    
+
     Action act = consumer.policy(obs2);
-    // Time since = 5.
-    // x = 5 / 10 = 0.5
-    // sig(0.5) = 0.5 / 1.5 = 1/3
-    // 1/3 * 200 = 66
-    EXPECT_NEAR(act.order.price, 66, 1);
+    EXPECT_EQ(act.order.price, maxPrice);
 }

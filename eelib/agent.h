@@ -65,10 +65,9 @@ class Consumer : public Agent{
         tick lastConsumed;
         long lastPlacedOrderId;
         unsigned short maxPrice;
-        tick ticksUntilHalfHunger;
+        tick hungerDelay = tick(0);
 
         unsigned short newLimitPrice(tick now);
-        unsigned short sigmoidHunger(tick timeSinceLastConsumption);
 
     public:
         Consumer(long traderId_, std::string asset_, 

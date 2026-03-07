@@ -1,6 +1,7 @@
 #include "agent.h"
 #include <string>
 #include "tick.h"
+#include <algorithm>
 
 Agent::Agent(long id) : traderId(id) {}
 
@@ -10,27 +11,25 @@ Action Agent::policy(const Observation& observation) {
 
 // Consumer Implementation
 
-unsigned short Consumer::sigmoidHunger(tick timeSinceLastConsumption){
-    double x = (double)timeSinceLastConsumption.raw() / (double)ticksUntilHalfHunger.raw();
-    double sig = (fast_sigmoid(x));
-    return (unsigned short)(sig * maxPrice);
-};
-
 unsigned short Consumer::newLimitPrice(tick now){       
     tick timeSinceLastConsumption(0);
     if (lastConsumed.raw() > 0 && now.raw() > lastConsumed.raw()) {
-         timeSinceLastConsumption = tick(now.raw() - lastConsumed.raw());
+        timeSinceLastConsumption = tick(now.raw() - lastConsumed.raw());
     }
+
+    unsigned short price = std::max(
+        std::min((unsigned long)0, timeSinceLastConsumption.raw() - hungerDelay.raw()
+    ), (size_t)maxPrice);
     
-    return sigmoidHunger(timeSinceLastConsumption);
+    return price;
 };
 
 Consumer::Consumer(long traderId_, std::string asset_, unsigned short maxPrice_, 
-    tick appetiteCoef_): 
+    tick hungerDelay_): 
     Agent(traderId_), 
     lastConsumed(tick(0)), 
     maxPrice(maxPrice_), 
-    ticksUntilHalfHunger(appetiteCoef_),
+    hungerDelay(hungerDelay_),
     asset(asset_),
     lastPlacedOrderId(0)
 {}
