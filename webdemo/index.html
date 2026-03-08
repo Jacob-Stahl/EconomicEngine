@@ -9,12 +9,17 @@
         .success { color: green; font-weight: bold; }
         .error { color: red; font-weight: bold; }
         #log { background: #f0f0f0; padding: 1rem; border-radius: 4px; font-family: monospace; white-space: pre-wrap; overflow-y: scroll;}
-        canvas { border: 1px solid #ccc; margin-bottom: 1rem; background: #fff;}
+        #spreadChart { border: 1px solid #ccc; margin-bottom: 1rem; background: #fff; width: 100%; max-width: 960px; height: 320px; }
+        .chart-meta { margin: 0.5rem 0 1rem; font-family: monospace; }
     </style>
 </head>
 <body>
     <h1>EELib WASM Loader</h1>
     <p>Status: <span id="status">Loading...</span></p>
+
+    <h3>Spread Chart</h3>
+    <canvas id="spreadChart" width="960" height="320"></canvas>
+    <div id="chartMeta" class="chart-meta">Tracking latest 25 ticks.</div>
 
     <h3>Console Output:</h3>
     <div id="log"></div>
@@ -23,6 +28,11 @@
     <script>
         const logDiv = document.getElementById('log');
         const statusSpan = document.getElementById('status');
+        const spreadCanvas = document.getElementById('spreadChart');
+        const spreadCtx = spreadCanvas.getContext('2d');
+        const chartMeta = document.getElementById('chartMeta');
+        const spreadHistoryWindow = 200;
+        const spreadHistory = [];
         
         function log(msg) {
             logDiv.textContent = msg + '\n' + logDiv.textContent;
@@ -45,6 +55,140 @@
             return depthStr;
         }
 
+        function pushSpreadPoint(time, spread) {
+            spreadHistory.push({
+                time,
+                bid: spread && !spread.bidsMissing ? spread.highestBid : null,
+                ask: spread && !spread.asksMissing ? spread.lowestAsk : null,
+            });
+
+            if (spreadHistory.length > spreadHistoryWindow) {
+                spreadHistory.shift();
+            }
+        }
+
+        function drawLine(ctx, points, getX, getY, color) {
+            let drawing = false;
+            ctx.beginPath();
+
+            points.forEach(point => {
+                const value = point.value;
+                if (value === null || value === undefined) {
+                    drawing = false;
+                    return;
+                }
+
+                const x = getX(point.index);
+                const y = getY(value);
+
+                if (!drawing) {
+                    ctx.moveTo(x, y);
+                    drawing = true;
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            points.forEach(point => {
+                const value = point.value;
+                if (value === null || value === undefined) {
+                    return;
+                }
+
+                const x = getX(point.index);
+                const y = getY(value);
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+            });
+        }
+
+        function drawSpreadChart() {
+            const width = spreadCanvas.width;
+            const height = spreadCanvas.height;
+            const padding = { top: 24, right: 16, bottom: 32, left: 42 };
+
+            spreadCtx.clearRect(0, 0, width, height);
+            spreadCtx.fillStyle = '#ffffff';
+            spreadCtx.fillRect(0, 0, width, height);
+
+            if (spreadHistory.length === 0) {
+                spreadCtx.fillStyle = '#666';
+                spreadCtx.font = '14px monospace';
+                spreadCtx.textAlign = 'center';
+                spreadCtx.fillText('Waiting for ticks...', width / 2, height / 2);
+                return;
+            }
+
+            const values = spreadHistory.flatMap(point => {
+                const series = [];
+                if (point.bid !== null) series.push(point.bid);
+                if (point.ask !== null) series.push(point.ask);
+                return series;
+            });
+
+            const minValue = values.length ? Math.min(...values) : 0;
+            const maxValue = values.length ? Math.max(...values) : 1;
+            const range = Math.max(1, maxValue - minValue);
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            const lastIndex = Math.max(1, spreadHistory.length - 1);
+
+            const getX = index => padding.left + (chartWidth * index) / lastIndex;
+            const getY = value => padding.top + chartHeight - ((value - minValue) / range) * chartHeight;
+
+            spreadCtx.strokeStyle = '#e2e2e2';
+            spreadCtx.lineWidth = 1;
+
+            for (let i = 0; i <= 4; i++) {
+                const y = padding.top + (chartHeight * i) / 4;
+                spreadCtx.beginPath();
+                spreadCtx.moveTo(padding.left, y);
+                spreadCtx.lineTo(width - padding.right, y);
+                spreadCtx.stroke();
+            }
+
+            spreadCtx.beginPath();
+            spreadCtx.moveTo(padding.left, padding.top);
+            spreadCtx.lineTo(padding.left, height - padding.bottom);
+            spreadCtx.lineTo(width - padding.right, height - padding.bottom);
+            spreadCtx.strokeStyle = '#999';
+            spreadCtx.stroke();
+
+            const bidPoints = spreadHistory.map((point, index) => ({ index, value: point.bid }));
+            const askPoints = spreadHistory.map((point, index) => ({ index, value: point.ask }));
+
+            drawLine(spreadCtx, bidPoints, getX, getY, '#0f766e');
+            drawLine(spreadCtx, askPoints, getX, getY, '#b91c1c');
+
+            spreadCtx.fillStyle = '#333';
+            spreadCtx.font = '12px monospace';
+            spreadCtx.textAlign = 'left';
+            spreadCtx.fillText(`${maxValue}`, 8, padding.top + 4);
+            spreadCtx.fillText(`${minValue}`, 8, height - padding.bottom);
+
+            const firstTime = spreadHistory[0].time;
+            const lastTime = spreadHistory[spreadHistory.length - 1].time;
+            spreadCtx.textAlign = 'left';
+            spreadCtx.fillText(`t=${firstTime}`, padding.left, height - 8);
+            spreadCtx.textAlign = 'right';
+            spreadCtx.fillText(`t=${lastTime}`, width - padding.right, height - 8);
+
+            spreadCtx.textAlign = 'left';
+            spreadCtx.fillStyle = '#0f766e';
+            spreadCtx.fillText('Bid', padding.left, 14);
+            spreadCtx.fillStyle = '#b91c1c';
+            spreadCtx.fillText('Ask', padding.left + 48, 14);
+
+            const latest = spreadHistory[spreadHistory.length - 1];
+            chartMeta.textContent = `Tracking latest ${spreadHistoryWindow} ticks. Latest tick ${latest.time}: bid=${latest.bid ?? 'NA'} ask=${latest.ask ?? 'NA'}`;
+        }
+
         createEelib().then(Module => {
             statusSpan.textContent = 'Module Loaded!';
             statusSpan.className = 'success';
@@ -61,15 +205,15 @@
 
                 // Create Consumers
                 const hungerDelay = new Module.tick(3);
-                const maxPrice = 20;
-                const numConsumers =  100;
+                const maxPrice = 100;
+                const numConsumers =  1000;
                 for(let traderId = 10; traderId < (numConsumers + 10); traderId++){
                     const consumer = new Module.Consumer(traderId, "FOOD", maxPrice, hungerDelay);
                     abm.addAgent(consumer);
                 }
 
                 // Create Single Producer
-                const producer = new Module.Producer(1, "FOOD", 10);
+                const producer = new Module.Producer(1, "FOOD", 50);
                 abm.addAgent(producer);
 
 
@@ -78,7 +222,7 @@
                 // Run Simulation Steps
                 log("Starting simulation loop...");
                 let step = 0;
-                const maxSteps = 200;
+                const maxSteps = 1000;
 
                 const runStep = () => {
                     if (step >= maxSteps) {
@@ -100,10 +244,12 @@
                     const depth = obs.assetOrderDepths.get("FOOD");
 
                     spreadInfo = `Bid:${spread.highestBid} Ask:${spread.lowestAsk} Num Bid Bins: ${depth.bidBins.size()}`;
+                    pushSpreadPoint(time, spread);
+                    drawSpreadChart();
 
                     log(`Step ${step} | Time: ${time} | FOOD: ${spreadInfo} | DEPTH: ${inlineDepthString(depth)}`);
                     
-                    setTimeout(runStep, 100);
+                    setTimeout(runStep, 1);
                 };
 
                 runStep();
