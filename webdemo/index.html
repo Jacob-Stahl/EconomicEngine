@@ -8,7 +8,7 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 2rem; }
         .success { color: green; font-weight: bold; }
         .error { color: red; font-weight: bold; }
-        #spreadChart { border: 1px solid #ccc; margin-bottom: 1rem; background: #fff; width: 100%; max-width: 960px; height: 320px; }
+        #spreadChart, #depthChart { border: 1px solid #ccc; margin-bottom: 1rem; background: #fff; width: 100%; max-width: 960px; height: 320px; }
         .chart-meta { margin: 0.5rem 0 1rem; font-family: monospace; }
     </style>
 </head>
@@ -17,11 +17,18 @@
     <canvas id="spreadChart" width="960" height="320"></canvas>
     <div id="chartMeta" class="chart-meta">Tracking latest 25 ticks.</div>
 
+    <h3>Depth Chart</h3>
+    <canvas id="depthChart" width="960" height="320"></canvas>
+    <div id="depthMeta" class="chart-meta">Waiting for first depth snapshot.</div>
+
     <script src="eelib.js"></script>
     <script>
         const spreadCanvas = document.getElementById('spreadChart');
         const spreadCtx = spreadCanvas.getContext('2d');
         const chartMeta = document.getElementById('chartMeta');
+        const depthCanvas = document.getElementById('depthChart');
+        const depthCtx = depthCanvas.getContext('2d');
+        const depthMeta = document.getElementById('depthMeta');
         const spreadHistoryWindow = 500;
         const spreadHistory = [];
 
@@ -159,6 +166,131 @@
             chartMeta.textContent = `Tracking latest ${spreadHistoryWindow} ticks. Latest tick ${latest.time}: bid=${latest.bid ?? 'NA'} ask=${latest.ask ?? 'NA'}`;
         }
 
+        function getBins(vector) {
+            const bins = [];
+
+            if (!vector) {
+                return bins;
+            }
+
+            for (let i = 0; i < vector.size(); i++) {
+                const bin = vector.get(i);
+                bins.push({ price: bin.price, qty: bin.totalQty });
+            }
+
+            return bins;
+        }
+
+        function drawDepthSeries(ctx, bins, getX, getY, color, fillColor) {
+            if (bins.length === 0) {
+                return;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(getX(bins[0].price), getY(0));
+
+            bins.forEach(bin => {
+                ctx.lineTo(getX(bin.price), getY(bin.qty));
+            });
+
+            ctx.lineTo(getX(bins[bins.length - 1].price), getY(0));
+            ctx.closePath();
+            ctx.fillStyle = fillColor;
+            ctx.fill();
+
+            ctx.beginPath();
+            bins.forEach((bin, index) => {
+                const x = getX(bin.price);
+                const y = getY(bin.qty);
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            bins.forEach(bin => {
+                ctx.beginPath();
+                ctx.arc(getX(bin.price), getY(bin.qty), 3, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+            });
+        }
+
+        function drawDepthChart(depth, spread, time) {
+            const width = depthCanvas.width;
+            const height = depthCanvas.height;
+            const padding = { top: 24, right: 16, bottom: 32, left: 42 };
+
+            depthCtx.clearRect(0, 0, width, height);
+            depthCtx.fillStyle = '#ffffff';
+            depthCtx.fillRect(0, 0, width, height);
+
+            const bidBins = getBins(depth ? depth.bidBins : null).sort((a, b) => a.price - b.price);
+            const askBins = getBins(depth ? depth.askBins : null).sort((a, b) => a.price - b.price);
+
+            if (bidBins.length === 0 && askBins.length === 0) {
+                depthCtx.fillStyle = '#666';
+                depthCtx.font = '14px monospace';
+                depthCtx.textAlign = 'center';
+                depthCtx.fillText('No depth on book.', width / 2, height / 2);
+                depthMeta.textContent = `Tick ${time}: no bid or ask depth.`;
+                return;
+            }
+
+            const prices = bidBins.concat(askBins).map(bin => bin.price);
+            const qtys = bidBins.concat(askBins).map(bin => bin.qty);
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const maxQty = Math.max(1, ...qtys);
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            const priceRange = Math.max(1, maxPrice - minPrice);
+            const getX = price => padding.left + ((price - minPrice) / priceRange) * chartWidth;
+            const getY = qty => padding.top + chartHeight - (qty / maxQty) * chartHeight;
+
+            depthCtx.strokeStyle = '#e2e2e2';
+            depthCtx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = padding.top + (chartHeight * i) / 4;
+                depthCtx.beginPath();
+                depthCtx.moveTo(padding.left, y);
+                depthCtx.lineTo(width - padding.right, y);
+                depthCtx.stroke();
+            }
+
+            depthCtx.beginPath();
+            depthCtx.moveTo(padding.left, padding.top);
+            depthCtx.lineTo(padding.left, height - padding.bottom);
+            depthCtx.lineTo(width - padding.right, height - padding.bottom);
+            depthCtx.strokeStyle = '#999';
+            depthCtx.stroke();
+
+            drawDepthSeries(depthCtx, bidBins, getX, getY, '#0f766e', 'rgba(15, 118, 110, 0.16)');
+            drawDepthSeries(depthCtx, askBins, getX, getY, '#b91c1c', 'rgba(185, 28, 28, 0.16)');
+
+            depthCtx.fillStyle = '#333';
+            depthCtx.font = '12px monospace';
+            depthCtx.textAlign = 'left';
+            depthCtx.fillText(`${maxQty}`, 8, padding.top + 4);
+            depthCtx.fillText('0', 18, height - padding.bottom);
+            depthCtx.fillText(`${minPrice}`, padding.left, height - 8);
+            depthCtx.textAlign = 'right';
+            depthCtx.fillText(`${maxPrice}`, width - padding.right, height - 8);
+
+            depthCtx.textAlign = 'left';
+            depthCtx.fillStyle = '#0f766e';
+            depthCtx.fillText('Bid Depth', padding.left, 14);
+            depthCtx.fillStyle = '#b91c1c';
+            depthCtx.fillText('Ask Depth', padding.left + 84, 14);
+
+            depthMeta.textContent = `Tick ${time}: ${bidBins.length} bid bins, ${askBins.length} ask bins, top bid=${spread && !spread.bidsMissing ? spread.highestBid : 'NA'}, top ask=${spread && !spread.asksMissing ? spread.lowestAsk : 'NA'}`;
+        }
+
         createEelib().then(Module => {
             try {
                 // Initialize ABM
@@ -196,8 +328,10 @@
                     // Check spreads for FOOD
                     // observation.assetSpreads is a MapStringSpread
                     const spread = obs.assetSpreads.get("FOOD");
+                    const depth = obs.assetOrderDepths.get("FOOD");
                     pushSpreadPoint(time, spread);
                     drawSpreadChart();
+                    drawDepthChart(depth, spread, time);
                     
                     setTimeout(runStep, 1);
                 };
@@ -205,15 +339,10 @@
                 runStep();
 
             } catch (e) {
-                log("Error: " + e.message);
-                statusSpan.textContent = 'Error during test';
-                statusSpan.className = 'error';
                 console.error(e);
             }
         }).catch(err => {
-            statusSpan.textContent = 'Failed to load module';
-            statusSpan.className = 'error';
-            log("Fatal Error: " + err);
+            console.error(err);
         });
     </script>
 </body>
