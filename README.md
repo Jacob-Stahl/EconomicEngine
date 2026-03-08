@@ -1,5 +1,9 @@
 # Economic Engine Library (EELib)
 
+## Web Demo
+
+https://jacob-stahl.github.io/EconomicEngine.github.io/
+
 ## WebAssembly Build Setup
 
 To compile the project for WebAssembly, you need to install the Emscripten SDK (emsdk).
