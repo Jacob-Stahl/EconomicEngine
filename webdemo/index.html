@@ -8,7 +8,6 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 2rem; }
         .success { color: green; font-weight: bold; }
         .error { color: red; font-weight: bold; }
-        #log { background: #f0f0f0; padding: 1rem; border-radius: 4px; font-family: monospace; white-space: pre-wrap; overflow-y: scroll;}
         #spreadChart { border: 1px solid #ccc; margin-bottom: 1rem; background: #fff; width: 100%; max-width: 960px; height: 320px; }
         .chart-meta { margin: 0.5rem 0 1rem; font-family: monospace; }
     </style>
@@ -18,38 +17,13 @@
     <canvas id="spreadChart" width="960" height="320"></canvas>
     <div id="chartMeta" class="chart-meta">Tracking latest 25 ticks.</div>
 
-    <h3>Console Output:</h3>
-    <div id="log"></div>
-
     <script src="eelib.js"></script>
     <script>
-        const logDiv = document.getElementById('log');
         const spreadCanvas = document.getElementById('spreadChart');
         const spreadCtx = spreadCanvas.getContext('2d');
         const chartMeta = document.getElementById('chartMeta');
         const spreadHistoryWindow = 500;
         const spreadHistory = [];
-        
-        function log(msg) {
-            logDiv.textContent = msg + '\n' + logDiv.textContent;
-            // Limit log lines
-            if(logDiv.textContent.length > 5000) {
-                 logDiv.textContent = logDiv.textContent.substring(0, 5000) + "...";
-            }
-        }
-
-
-        function inlineDepthString(depth){
-            depth.bidBins.size()
-
-            let depthStr = "";
-
-            Array.from(depth.bidBins).forEach(bin => {
-                depthStr = depthStr + `${bin.price} : ${bin.totalQty}, `;
-            });
-
-            return depthStr;
-        }
 
         function pushSpreadPoint(time, spread) {
             spreadHistory.push({
@@ -186,15 +160,9 @@
         }
 
         createEelib().then(Module => {
-            log("WASModule initialized.");
-
             try {
-                log("Running ABM Simulation...");
-
                 // Initialize ABM
                 const abm = new Module.ABM();
-                log("ABM initialized");
-
 
                 // Create Consumers
                 const hungerDelay = new Module.tick(3);
@@ -209,17 +177,12 @@
                 const producer = new Module.Producer(1, "FOOD", 50);
                 abm.addAgent(producer);
 
-
-                log(`Agents added. Total agents: ${abm.getNumAgents()}`);
-
                 // Run Simulation Steps
-                log("Starting simulation loop...");
                 let step = 0;
                 const maxSteps = 10000;
 
                 const runStep = () => {
                     if (step >= maxSteps) {
-                        log("Simulation complete.");
                         return;
                     }
 
@@ -232,15 +195,9 @@
 
                     // Check spreads for FOOD
                     // observation.assetSpreads is a MapStringSpread
-                    let spreadInfo = "No Spread";
                     const spread = obs.assetSpreads.get("FOOD");
-                    const depth = obs.assetOrderDepths.get("FOOD");
-
-                    spreadInfo = `Bid:${spread.highestBid} Ask:${spread.lowestAsk} Num Bid Bins: ${depth.bidBins.size()}`;
                     pushSpreadPoint(time, spread);
                     drawSpreadChart();
-
-                    log(`Step ${step} | Time: ${time} | FOOD: ${spreadInfo} | DEPTH: ${inlineDepthString(depth)}`);
                     
                     setTimeout(runStep, 1);
                 };
