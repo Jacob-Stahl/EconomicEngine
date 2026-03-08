@@ -16,7 +16,7 @@ class MockSelector : public AgentSelector {
 public:
     MockSelector(long threshold_) : threshold(threshold_) {}
     
-    bool keepThis(const std::unique_ptr<Agent>& agent) override {
+    bool isSelected(const std::unique_ptr<Agent>& agent) override {
         return agent->traderId < threshold;
     }
 };

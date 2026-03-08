@@ -8,7 +8,7 @@
 
 class AgentSelector{
     public:
-        virtual bool keepThis(const std::unique_ptr<Agent>& agent){return true; };
+        virtual bool isSelected(const std::unique_ptr<Agent>& agent){return true; };
 };
 
 /// @brief Agent Based Model. Framework for multi agent trading simulations.

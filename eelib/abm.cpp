@@ -120,7 +120,7 @@ void ABM::removeAgents(AgentSelector& agentSelector){
 
     for(size_t i = 0; i < numAgents; ++i){
         auto& agent = agents[i];
-        if(!agentSelector.keepThis(agent)){
+        if(!agentSelector.isSelected(agent)){
 
             // Carry out final will
             auto finalAction = agent->lastWill(latestObservation);
