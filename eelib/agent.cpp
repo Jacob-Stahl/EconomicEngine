@@ -11,15 +11,6 @@ Action Agent::policy(const Observation& observation) {
 
 // Consumer Implementation
 
-unsigned short Consumer::newLimitPrice(tick now){       
-
-    unsigned short price = std::min(
-        std::max(0l, (long)sinceLastFill.raw() - (long)hungerDelay.raw()
-    ), (long)maxPrice);
-    
-    return price;
-};
-
 Consumer::Consumer(long traderId_, std::string asset_, unsigned short maxPrice_, 
     tick hungerDelay_): 
     Agent(traderId_), 
@@ -27,25 +18,33 @@ Consumer::Consumer(long traderId_, std::string asset_, unsigned short maxPrice_,
     maxPrice(maxPrice_), 
     hungerDelay(hungerDelay_),
     asset(asset_),
-    lastPlacedOrderId(0)
+    orderOnBookId(0)
 {}
 
 Action Consumer::policy(const Observation& observation){
-    auto price = newLimitPrice(observation.time);
+    
+    // Get new limit price based on current hunger
+    auto price = std::min(
+        std::max(0l, (long)sinceLastFill.raw() - (long)hungerDelay.raw()
+    ), (long)maxPrice);
     ++sinceLastFill;
 
     // qty always set to 1 to avoid partial fills
     Order order(asset, BUY, LIMIT, price, 1);
     
-    if (lastPlacedOrderId > 0) {
-        return Action{order, lastPlacedOrderId};
+    if (orderOnBookId > 0) {
+        return Action{order, orderOnBookId};
     } else {
         return Action{order};
     }
 }
 
 void Consumer::orderPlaced(long orderId, const tick now) {
-    lastPlacedOrderId = orderId;
+    orderOnBookId = orderId;
+}
+
+void Consumer::orderCanceled(long orderId, const tick now){
+    orderOnBookId = 0;
 }
 
 void Consumer::matchFound(const Match& match, const tick now) {
@@ -53,7 +52,7 @@ void Consumer::matchFound(const Match& match, const tick now) {
 }
 
 Action Consumer::lastWill(const Observation& observation){
-    return Action(lastPlacedOrderId); // Cancel order before death
+    return Action(orderOnBookId); // Cancel order before death
 }
 
 

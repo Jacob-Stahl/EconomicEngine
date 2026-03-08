@@ -63,11 +63,9 @@ class Consumer : public Agent{
     private:
         std::string asset;
         tick sinceLastFill = tick(0);
-        long lastPlacedOrderId;
+        long orderOnBookId;
         unsigned short maxPrice;
         tick hungerDelay = tick(0);
-
-        unsigned short newLimitPrice(tick now);
 
     public:
         Consumer(long traderId_, std::string asset_, 
@@ -75,6 +73,7 @@ class Consumer : public Agent{
         Action policy(const Observation& observation) override;
         void orderPlaced(long orderId, const tick now) override;
         void matchFound(const Match& match, const tick now) override;
+        void orderCanceled(long orderId, const tick now) override;
         Action lastWill(const Observation& observation) override;
 };
 
