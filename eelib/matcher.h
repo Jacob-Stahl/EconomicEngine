@@ -98,6 +98,7 @@ class Matcher{
         void addOrder(Order& order, bool thenMatch = true);
 
         void cancelOrder(long ordId);
+        void cleanupCanceledOrders();
         
         /// @brief Add all orders in the book to a vector provided by reference. They are NOT sorted by time.
         /// @param orders 

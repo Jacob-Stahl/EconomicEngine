@@ -13,6 +13,9 @@ class AgentSelector{
 
 /// @brief Agent Based Model. Framework for multi agent trading simulations.
 class ABM{
+
+    const int cleanupCancelledEvery = 16;
+
     std::vector<std::unique_ptr<Agent>> agents;
     tick tickCounter{0};
     long nextTraderId = 1;
@@ -25,6 +28,7 @@ class ABM{
     Observation latestObservation;
 
     void cancelOrderWithAllMatchers(long doomedOrderId);
+    void cleanupCanceledOrdersWithAllMatchers();
     void addMatcherIfNeeded(const std::string& asset);
     void routeMatches(std::vector<Match>& matches);
     void observe();

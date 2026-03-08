@@ -150,6 +150,49 @@ void Matcher::cancelOrder(long ordId){
     canceledOrderIds.insert(ordId);
 }
 
+void Matcher::cleanupCanceledOrders(){
+    if(canceledOrderIds.empty()){
+        return;
+    }
+
+    std::vector<size_t> marketOrdersToRemove{};
+    marketOrdersToRemove.reserve(marketOrders.size());
+    for(size_t idx = 0; idx < marketOrders.size(); ++idx){
+        if(isCanceled(marketOrders[idx].ordId)){
+            marketOrdersToRemove.push_back(idx);
+        }
+    }
+    removeIdxs<Order>(marketOrders, marketOrdersToRemove);
+
+    auto cleanupLimitBook = [this](auto& limits){
+        std::vector<unsigned short> pricesToRemove{};
+
+        for(auto& [price, book] : limits){
+            std::vector<size_t> ordersToRemove{};
+            ordersToRemove.reserve(book.size());
+
+            for(size_t idx = 0; idx < book.size(); ++idx){
+                if(isCanceled(book[idx].ordId)){
+                    ordersToRemove.push_back(idx);
+                }
+            }
+
+            removeIdxs<Order>(book, ordersToRemove);
+            if(book.empty()){
+                pricesToRemove.push_back(price);
+            }
+        }
+
+        for(auto price : pricesToRemove){
+            limits.erase(price);
+        }
+    };
+
+    cleanupLimitBook(buyLimits);
+    cleanupLimitBook(sellLimits);
+    canceledOrderIds.clear();
+}
+
 bool Matcher::isCanceled(long ordId){
     if(canceledOrderIds.size() == 0){
         return false;

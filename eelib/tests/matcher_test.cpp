@@ -361,6 +361,40 @@ TEST_F(MatcherTest, CancelAllOrderTypes){
     }
 }
 
+TEST_F(MatcherTest, CleanupCanceledOrders_RemovesCanceledOrdersWithoutMatching){
+    auto market = newOrder(BUY, MARKET, 10);
+    auto buyLimit = newOrder(BUY, LIMIT, 10, 100);
+    auto sellLimit = newOrder(SELL, LIMIT, 10, 110);
+
+    matcher.addOrder(market, false);
+    matcher.addOrder(buyLimit, false);
+    matcher.addOrder(sellLimit, false);
+
+    matcher.cancelOrder(market.ordId);
+    matcher.cancelOrder(buyLimit.ordId);
+    matcher.cancelOrder(sellLimit.ordId);
+    matcher.cleanupCanceledOrders();
+
+    std::vector<Order> dumped;
+    matcher.dumpOrdersTo(dumped);
+
+    EXPECT_TRUE(dumped.empty());
+
+    auto spread = matcher.getSpread();
+    EXPECT_TRUE(spread.bidsMissing);
+    EXPECT_TRUE(spread.asksMissing);
+
+    auto depth = matcher.getDepth();
+    EXPECT_TRUE(depth.bidBins.empty());
+    EXPECT_TRUE(depth.askBins.empty());
+
+    auto counts = matcher.getOrderCounts();
+    EXPECT_EQ(0, counts.at(MARKET));
+    EXPECT_EQ(0, counts.at(LIMIT));
+    EXPECT_EQ(0, counts.at(STOP));
+    EXPECT_EQ(0, counts.at(STOPLIMIT));
+}
+
 TEST_F(MatcherTest, GetDepth_ReturnsCumulativeBins){
     // Setup: two buy price levels and two sell price levels
     auto buyLow  = newOrder(BUY,  LIMIT, 40,  90);

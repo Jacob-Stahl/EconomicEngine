@@ -64,6 +64,12 @@ void ABM::cancelOrderWithAllMatchers(long doomedOrderId){
     };
 }
 
+void ABM::cleanupCanceledOrdersWithAllMatchers(){
+    for(auto& it : orderMatchers){
+        it.second.cleanupCanceledOrders();
+    };
+}
+
 void ABM::simStep(){
     // update latest observation
     observe();
@@ -100,6 +106,10 @@ void ABM::simStep(){
 
     routeMatches(notifier.matches);
     ++tickCounter;
+
+    if(tickCounter.raw() % cleanupCancelledEvery == 0){
+        cleanupCanceledOrdersWithAllMatchers();
+    }
 
     // observe again to keep latestObservation up to date.
     // TODO: fix this double work
