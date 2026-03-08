@@ -41,11 +41,9 @@
         <p class="control-note">Parameter changes take effect the next time you restart the simulation.</p>
     </div>
 
-    <h3>Spread Chart</h3>
     <canvas id="spreadChart" width="960" height="320"></canvas>
     <div id="chartMeta" class="chart-meta">Tracking latest 25 ticks.</div>
 
-    <h3>Depth Chart</h3>
     <canvas id="depthChart" width="960" height="320"></canvas>
     <div id="depthMeta" class="chart-meta">Waiting for first depth snapshot.</div>
 
@@ -64,7 +62,7 @@
         const producerPriceInput = document.getElementById('producerPriceInput');
         const spreadHistoryWindow = 500;
         const spreadHistory = [];
-        const maxSteps = 10000;
+        const maxSteps = Infinity;
         const defaultParams = {
             hungerDelay: 0,
             maxPrice: 100,
