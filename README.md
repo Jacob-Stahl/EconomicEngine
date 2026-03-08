@@ -74,3 +74,19 @@ Open your browser and navigate to:
 [http://localhost:8000](http://localhost:8000)
 
 Check the browser console (Right Click -> Inspect -> Console) to see the output.
+
+## Deploying the Web Demo to GitHub Pages
+
+This repository includes a GitHub Actions workflow at [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) that builds the WebAssembly demo and publishes the contents of [webdemo](webdemo) to GitHub Pages.
+
+### One-time GitHub setup
+
+In your repository settings:
+
+1. Open `Settings` -> `Pages`
+2. Under `Build and deployment`, set `Source` to `GitHub Actions`
+
+### Deployment behavior
+
+- Pushes to `main` or `master` that touch the WASM build, the `eelib` sources, or the demo page will trigger a deployment.
+- You can also trigger the workflow manually from the `Actions` tab.
