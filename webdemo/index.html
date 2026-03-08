@@ -60,9 +60,9 @@
 
 
                 // Create Consumers
-                const hungerDelay = new Module.tick(10);
+                const hungerDelay = new Module.tick(3);
                 const maxPrice = 20;
-                const numConsumers =  5;
+                const numConsumers =  100;
                 for(let traderId = 10; traderId < (numConsumers + 10); traderId++){
                     const consumer = new Module.Consumer(traderId, "FOOD", maxPrice, hungerDelay);
                     abm.addAgent(consumer);
@@ -78,7 +78,7 @@
                 // Run Simulation Steps
                 log("Starting simulation loop...");
                 let step = 0;
-                const maxSteps = 50;
+                const maxSteps = 200;
 
                 const runStep = () => {
                     if (step >= maxSteps) {

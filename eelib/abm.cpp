@@ -79,6 +79,7 @@ void ABM::simStep(){
 
         if(action.placeOrder){
             Order order{action.order};
+            order.traderId = agent->traderId;
             order.ordId = ++nextOrderId;
             addMatcherIfNeeded(order.asset);
 

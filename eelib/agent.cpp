@@ -49,6 +49,7 @@ void Consumer::orderCanceled(long orderId, const tick now){
 
 void Consumer::matchFound(const Match& match, const tick now) {
     sinceLastFill = tick{0};
+    orderOnBookId = 0;
 }
 
 Action Consumer::lastWill(const Observation& observation){

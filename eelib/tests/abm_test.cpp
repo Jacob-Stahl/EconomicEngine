@@ -103,6 +103,33 @@ public:
     }
 };
 
+class TrackingConsumer : public Consumer {
+public:
+    using Consumer::Consumer;
+
+    std::vector<Action> actions;
+    int matchFoundCalls = 0;
+
+    Action policy(const Observation& obs) override {
+        Action action = Consumer::policy(obs);
+        actions.push_back(action);
+        return action;
+    }
+
+    void orderPlaced(long orderId, const tick now) override {
+        Consumer::orderPlaced(orderId, now);
+    }
+
+    void orderCanceled(long orderId, const tick now) override {
+        Consumer::orderCanceled(orderId, now);
+    }
+
+    void matchFound(const Match& match, const tick now) override {
+        ++matchFoundCalls;
+        Consumer::matchFound(match, now);
+    }
+};
+
 TEST_F(ABMTest, ProducerConsumerOneStep) {
     // 1 Producer, 3 Consumers
     abm.addAgent(std::make_unique<MockProducerAgent>(0));
@@ -215,6 +242,37 @@ TEST_F(ABMTest, MatchRoutingToCorrectConsumerWithThreeConsumers) {
 
     EXPECT_EQ(consumer1Match.seller.traderId, pProducer->traderId);
     EXPECT_EQ(consumer1Match.buyer.traderId, pConsumer1->traderId);
+}
+
+TEST_F(ABMTest, RealConsumerMatchFoundResetsHungerAfterFill) {
+    auto consumer = std::make_unique<TrackingConsumer>(0, "FOOD", 20, tick(0));
+    auto producer = std::make_unique<Producer>(0, "FOOD", 0);
+
+    TrackingConsumer* pConsumer = consumer.get();
+
+    abm.addAgent(std::move(consumer));
+    abm.addAgent(std::move(producer));
+
+    abm.simStep();
+    abm.simStep();
+    abm.simStep();
+
+    ASSERT_EQ(pConsumer->matchFoundCalls, 1);
+
+    abm.simStep();
+
+    ASSERT_EQ(pConsumer->actions.size(), 4);
+    EXPECT_FALSE(pConsumer->actions[3].cancelOrder);
+
+    Depth depthAfterReset = abm.getLatestObservation().assetOrderDepths.at("FOOD");
+    EXPECT_TRUE(depthAfterReset.bidBins.empty());
+
+    abm.simStep();
+
+    Depth depthAfterRecovery = abm.getLatestObservation().assetOrderDepths.at("FOOD");
+    ASSERT_EQ(depthAfterRecovery.bidBins.size(), 1);
+    EXPECT_EQ(depthAfterRecovery.bidBins[0].price, 1);
+    EXPECT_EQ(depthAfterRecovery.bidBins[0].totalQty, 1);
 }
 
 class CancelingAgent : public Agent {
