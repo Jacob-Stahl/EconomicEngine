@@ -179,6 +179,44 @@ TEST_F(ABMTest, MatchRoutingToAgents) {
     EXPECT_EQ(consMatch.buyer.traderId, pConsumer->traderId);
 }
 
+TEST_F(ABMTest, MatchRoutingToCorrectConsumerWithThreeConsumers) {
+    auto producer = std::make_unique<MockProducerAgent>(0);
+    auto consumer1 = std::make_unique<MockConsumerAgent>(0);
+    auto consumer2 = std::make_unique<MockConsumerAgent>(0);
+    auto consumer3 = std::make_unique<MockConsumerAgent>(0);
+
+    MockProducerAgent* pProducer = producer.get();
+    MockConsumerAgent* pConsumer1 = consumer1.get();
+    MockConsumerAgent* pConsumer2 = consumer2.get();
+    MockConsumerAgent* pConsumer3 = consumer3.get();
+
+    abm.addAgent(std::move(producer));
+    abm.addAgent(std::move(consumer1));
+    abm.addAgent(std::move(consumer2));
+    abm.addAgent(std::move(consumer3));
+
+    abm.simStep();
+
+    ASSERT_EQ(pProducer->matches.size(), 1);
+    ASSERT_EQ(pConsumer1->matches.size(), 1);
+    EXPECT_TRUE(pConsumer2->matches.empty());
+    EXPECT_TRUE(pConsumer3->matches.empty());
+
+    Match producerMatch = pProducer->matches[0];
+    Match consumer1Match = pConsumer1->matches[0];
+
+    EXPECT_EQ(producerMatch.qty, 1);
+    EXPECT_EQ(consumer1Match.qty, 1);
+
+    EXPECT_EQ(producerMatch.seller.traderId, pProducer->traderId);
+    EXPECT_EQ(producerMatch.buyer.traderId, pConsumer1->traderId);
+    EXPECT_NE(producerMatch.buyer.traderId, pConsumer2->traderId);
+    EXPECT_NE(producerMatch.buyer.traderId, pConsumer3->traderId);
+
+    EXPECT_EQ(consumer1Match.seller.traderId, pProducer->traderId);
+    EXPECT_EQ(consumer1Match.buyer.traderId, pConsumer1->traderId);
+}
+
 class CancelingAgent : public Agent {
 public:
     bool cancellationConfirmed = false;

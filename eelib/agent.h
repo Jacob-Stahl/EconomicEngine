@@ -50,9 +50,9 @@ class Agent{
 
         virtual Action policy(const Observation& observation);
 
-        virtual void matchFound(const Match& match, tick now){};
-        virtual void orderPlaced(long orderId, tick now){};
-        virtual void orderCanceled(long orderId, tick now){};
+        virtual void matchFound(const Match& match, const tick now){};
+        virtual void orderPlaced(long orderId, const tick now){};
+        virtual void orderCanceled(long orderId, const tick now){};
 
         /// @brief Final action before agent is removed from ABM
         virtual Action lastWill(const Observation& observation){return Action();};
@@ -62,7 +62,7 @@ class Consumer : public Agent{
 
     private:
         std::string asset;
-        tick lastConsumed;
+        tick sinceLastFill = tick(0);
         long lastPlacedOrderId;
         unsigned short maxPrice;
         tick hungerDelay = tick(0);
@@ -71,10 +71,10 @@ class Consumer : public Agent{
 
     public:
         Consumer(long traderId_, std::string asset_, 
-            unsigned short maxPrice, tick appetiteCoef);
+            unsigned short maxPrice_, tick hungerDelay_);
         Action policy(const Observation& observation) override;
-        void orderPlaced(long orderId, tick now) override;
-        void matchFound(const Match& match, tick now) override;
+        void orderPlaced(long orderId, const tick now) override;
+        void matchFound(const Match& match, const tick now) override;
         Action lastWill(const Observation& observation) override;
 };
 

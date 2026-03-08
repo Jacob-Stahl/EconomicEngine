@@ -12,14 +12,10 @@ Action Agent::policy(const Observation& observation) {
 // Consumer Implementation
 
 unsigned short Consumer::newLimitPrice(tick now){       
-    tick timeSinceLastConsumption(0);
-    if (lastConsumed.raw() > 0 && now.raw() > lastConsumed.raw()) {
-        timeSinceLastConsumption = tick(now.raw() - lastConsumed.raw());
-    }
 
-    unsigned short price = std::max(
-        std::min((unsigned long)0, timeSinceLastConsumption.raw() - hungerDelay.raw()
-    ), (size_t)maxPrice);
+    unsigned short price = std::min(
+        std::max(0l, (long)sinceLastFill.raw() - (long)hungerDelay.raw()
+    ), (long)maxPrice);
     
     return price;
 };
@@ -27,7 +23,7 @@ unsigned short Consumer::newLimitPrice(tick now){
 Consumer::Consumer(long traderId_, std::string asset_, unsigned short maxPrice_, 
     tick hungerDelay_): 
     Agent(traderId_), 
-    lastConsumed(tick(0)), 
+    sinceLastFill(tick(0)),
     maxPrice(maxPrice_), 
     hungerDelay(hungerDelay_),
     asset(asset_),
@@ -35,12 +31,8 @@ Consumer::Consumer(long traderId_, std::string asset_, unsigned short maxPrice_,
 {}
 
 Action Consumer::policy(const Observation& observation){
-    // Don't start hungery
-    if(lastConsumed.raw() == 0){
-        lastConsumed = observation.time;
-    }
-    
     auto price = newLimitPrice(observation.time);
+    ++sinceLastFill;
 
     // qty always set to 1 to avoid partial fills
     Order order(asset, BUY, LIMIT, price, 1);
@@ -52,12 +44,12 @@ Action Consumer::policy(const Observation& observation){
     }
 }
 
-void Consumer::orderPlaced(long orderId, tick now){
+void Consumer::orderPlaced(long orderId, const tick now) {
     lastPlacedOrderId = orderId;
 }
 
-void Consumer::matchFound(const Match& match, tick now){
-    lastConsumed = now;
+void Consumer::matchFound(const Match& match, const tick now) {
+    sinceLastFill = tick{0};
 }
 
 Action Consumer::lastWill(const Observation& observation){
@@ -98,4 +90,3 @@ Action Producer::policy(const Observation& observation) {
     Order order(asset, SELL, MARKET, 0, qtyPerTick);
     return Action{order};
 }
-
