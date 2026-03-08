@@ -14,9 +14,6 @@
     </style>
 </head>
 <body>
-    <h1>EELib WASM Loader</h1>
-    <p>Status: <span id="status">Loading...</span></p>
-
     <h3>Spread Chart</h3>
     <canvas id="spreadChart" width="960" height="320"></canvas>
     <div id="chartMeta" class="chart-meta">Tracking latest 25 ticks.</div>
@@ -27,11 +24,10 @@
     <script src="eelib.js"></script>
     <script>
         const logDiv = document.getElementById('log');
-        const statusSpan = document.getElementById('status');
         const spreadCanvas = document.getElementById('spreadChart');
         const spreadCtx = spreadCanvas.getContext('2d');
         const chartMeta = document.getElementById('chartMeta');
-        const spreadHistoryWindow = 200;
+        const spreadHistoryWindow = 500;
         const spreadHistory = [];
         
         function log(msg) {
@@ -190,9 +186,6 @@
         }
 
         createEelib().then(Module => {
-            statusSpan.textContent = 'Module Loaded!';
-            statusSpan.className = 'success';
-            
             log("WASModule initialized.");
 
             try {
@@ -222,7 +215,7 @@
                 // Run Simulation Steps
                 log("Starting simulation loop...");
                 let step = 0;
-                const maxSteps = 1000;
+                const maxSteps = 10000;
 
                 const runStep = () => {
                     if (step >= maxSteps) {
