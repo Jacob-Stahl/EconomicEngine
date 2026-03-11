@@ -1,15 +1,9 @@
 # pragma once
 
 #include <memory>
-#include <unordered_map>
+#include <unordered_set>
 #include "matcher.h"
 #include "agent.h"
-
-
-class AgentSelector{
-    public:
-        virtual bool isSelected(const std::unique_ptr<Agent>& agent){return true; };
-};
 
 /// @brief Agent Based Model. Framework for multi agent trading simulations.
 class ABM{
@@ -37,7 +31,8 @@ class ABM{
         ABM() = default;
         void simStep();
         long addAgent(std::unique_ptr<Agent> newAgent);
-        void removeAgents(AgentSelector& agentSelector);
+        void removeAgents(std::vector<long> traderIds);
+        void removeAgents(std::vector<size_t> agentsToRemove);
         
         size_t getNumAgents() const { return agents.size(); }
         const Observation& getLatestObservation() {return latestObservation; };

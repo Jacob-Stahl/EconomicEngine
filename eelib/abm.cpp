@@ -123,24 +123,38 @@ long ABM::addAgent(std::unique_ptr<Agent> agent){
     return id;
 }
 
-void ABM::removeAgents(AgentSelector& agentSelector){
+void ABM::removeAgents(std::vector<long> traderIdsToRemove){
     std::vector<size_t> agentsToRemove{};
     size_t numAgents = agents.size();
     agentsToRemove.reserve(numAgents);
+    std::sort(traderIdsToRemove.begin(), traderIdsToRemove.end(),
+        [](const long a, const long b){
+            return a < b;
+        });
 
+    size_t j = 0;
     for(size_t i = 0; i < numAgents; ++i){
         auto& agent = agents[i];
-        if(!agentSelector.isSelected(agent)){
-
-            // Carry out final will
-            auto finalAction = agent->lastWill(latestObservation);
-            if(finalAction.cancelOrder){
-                cancelOrderWithAllMatchers(finalAction.doomedOrderId);
-            }
-            // TODO: Order placements after death not enforceable yet. fine for now
-
+        if(agent->traderId == traderIdsToRemove[j]){
             agentsToRemove.push_back(i);
+            j++;
         }
+    }
+
+    removeAgents(agentsToRemove);
+}
+
+void ABM::removeAgents(std::vector<size_t> agentsToRemove){
+    for(auto agentIdx : agentsToRemove){
+        auto& agent = agents[agentIdx];
+
+        // Carry out final will
+        auto finalAction = agent->lastWill(latestObservation);
+        if(finalAction.cancelOrder){
+            cancelOrderWithAllMatchers(finalAction.doomedOrderId);
+        }
+
+        // TODO: Order placements after death not enforceable yet. fine for now
     }
 
     // Out to pasture

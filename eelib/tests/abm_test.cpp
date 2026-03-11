@@ -11,16 +11,6 @@ public:
     }
 };
 
-class MockSelector : public AgentSelector {
-    long threshold;
-public:
-    MockSelector(long threshold_) : threshold(threshold_) {}
-    
-    bool isSelected(const std::unique_ptr<Agent>& agent) override {
-        return agent->traderId < threshold;
-    }
-};
-
 class ABMTest : public ::testing::Test {
 protected:
     ABM abm;
@@ -49,11 +39,26 @@ TEST_F(ABMTest, RemoveAgentsBasedOnId) {
     
     EXPECT_EQ(abm.getNumAgents(), 4);
     
-    // Keep agents with ID < 3. Should keep ID 1 and 2. Remove 3 and 4.
-    MockSelector selector(3);
-    abm.removeAgents(selector);
+    // Remove agent 3
+    std::vector<long> traderIdsToRemove{3};
+    abm.removeAgents(traderIdsToRemove);
     
-    EXPECT_EQ(abm.getNumAgents(), 2);
+    EXPECT_EQ(abm.getNumAgents(), 3);
+}
+
+TEST_F(ABMTest, RemoveAgentsBasedOnId_IdNotPresent_DoesntRemove) {
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 1
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 2
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 3
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 4
+    
+    EXPECT_EQ(abm.getNumAgents(), 4);
+    
+    // Try to remove 10. Is not there
+    std::vector<long> traderIdsToRemove{10};
+    abm.removeAgents(traderIdsToRemove);
+    
+    EXPECT_EQ(abm.getNumAgents(), 4);
 }
 
 class MockProducerAgent : public Agent {
