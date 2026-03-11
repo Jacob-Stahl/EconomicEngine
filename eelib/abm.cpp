@@ -123,7 +123,7 @@ long ABM::addAgent(std::unique_ptr<Agent> agent){
     return id;
 }
 
-void ABM::removeAgents(std::vector<long> traderIdsToRemove){
+void ABM::removeAgents(std::vector<long>& traderIdsToRemove){
     std::vector<size_t> agentsToRemove{};
     size_t numAgents = agents.size();
     agentsToRemove.reserve(numAgents);
@@ -134,6 +134,7 @@ void ABM::removeAgents(std::vector<long> traderIdsToRemove){
 
     size_t j = 0;
     for(size_t i = 0; i < numAgents; ++i){
+        if(j >= traderIdsToRemove.size()) break;
         auto& agent = agents[i];
         if(agent->traderId == traderIdsToRemove[j]){
             agentsToRemove.push_back(i);
@@ -144,7 +145,7 @@ void ABM::removeAgents(std::vector<long> traderIdsToRemove){
     removeAgents(agentsToRemove);
 }
 
-void ABM::removeAgents(std::vector<size_t> agentsToRemove){
+void ABM::removeAgents(const std::vector<size_t>& agentsToRemove){
     for(auto agentIdx : agentsToRemove){
         auto& agent = agents[agentIdx];
 

@@ -26,13 +26,13 @@ class ABM{
     void addMatcherIfNeeded(const std::string& asset);
     void routeMatches(std::vector<Match>& matches);
     void observe();
+    void removeAgents(const std::vector<size_t>& agentsToRemove);
 
     public:
         ABM() = default;
         void simStep();
         long addAgent(std::unique_ptr<Agent> newAgent);
-        void removeAgents(std::vector<long> traderIds);
-        void removeAgents(std::vector<size_t> agentsToRemove);
+        void removeAgents(std::vector<long>& traderIdsToRemove);
         
         size_t getNumAgents() const { return agents.size(); }
         const Observation& getLatestObservation() {return latestObservation; };

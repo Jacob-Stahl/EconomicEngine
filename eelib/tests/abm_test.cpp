@@ -46,6 +46,21 @@ TEST_F(ABMTest, RemoveAgentsBasedOnId) {
     EXPECT_EQ(abm.getNumAgents(), 3);
 }
 
+TEST_F(ABMTest, Remove2AgentsBasedOnId) {
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 1
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 2
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 3
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 4
+    
+    EXPECT_EQ(abm.getNumAgents(), 4);
+    
+    // Remove agent 2 and 3
+    std::vector<long> traderIdsToRemove{3, 2};
+    abm.removeAgents(traderIdsToRemove);
+    
+    EXPECT_EQ(abm.getNumAgents(), 2);
+}
+
 TEST_F(ABMTest, RemoveAgentsBasedOnId_IdNotPresent_DoesntRemove) {
     abm.addAgent(std::make_unique<MockAgent>(0)); // ID 1
     abm.addAgent(std::make_unique<MockAgent>(0)); // ID 2
@@ -56,6 +71,20 @@ TEST_F(ABMTest, RemoveAgentsBasedOnId_IdNotPresent_DoesntRemove) {
     
     // Try to remove 10. Is not there
     std::vector<long> traderIdsToRemove{10};
+    abm.removeAgents(traderIdsToRemove);
+    
+    EXPECT_EQ(abm.getNumAgents(), 4);
+}
+
+TEST_F(ABMTest, RemoveAgentsBasedOnId_TraderIdsEmpty) {
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 1
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 2
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 3
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 4
+    
+    EXPECT_EQ(abm.getNumAgents(), 4);
+    
+    std::vector<long> traderIdsToRemove{};
     abm.removeAgents(traderIdsToRemove);
     
     EXPECT_EQ(abm.getNumAgents(), 4);
