@@ -22,8 +22,12 @@
 <body>
     <div class="controls">
         <div class="control-group">
-            <label for="hungerDelayInput">Consumer Hunger Delay</label>
-            <input id="hungerDelayInput" type="number" min="0" step="1" value="0">
+            <label for="hungerDelayMeanInput">Consumer Hunger Delay Mean</label>
+            <input id="hungerDelayMeanInput" type="number" min="0" step="1" value="0">
+        </div>
+        <div class="control-group">
+            <label for="hungerDelayStdInput">Consumer Hunger Delay Std Dev</label>
+            <input id="hungerDelayStdInput" type="number" min="0" step="1" value="0">
         </div>
         <div class="control-group">
             <label for="maxPriceInput">Consumer Max Price</label>
@@ -56,7 +60,8 @@
         const depthCtx = depthCanvas.getContext('2d');
         const depthMeta = document.getElementById('depthMeta');
         const restartButton = document.getElementById('restartButton');
-        const hungerDelayInput = document.getElementById('hungerDelayInput');
+        const hungerDelayMeanInput = document.getElementById('hungerDelayMeanInput');
+        const hungerDelayStdInput = document.getElementById('hungerDelayStdInput');
         const maxPriceInput = document.getElementById('maxPriceInput');
         const numConsumersInput = document.getElementById('numConsumersInput');
         const producerPriceInput = document.getElementById('producerPriceInput');
@@ -64,7 +69,8 @@
         const spreadHistory = [];
         const maxSteps = Infinity;
         const defaultParams = {
-            hungerDelay: 0,
+            hungerDelayMean: 0,
+            hungerDelayStd: 0,
             maxPrice: 100,
             numConsumers: 1000,
             producerPrice: 50,
@@ -366,18 +372,37 @@
 
         function getSimulationParams() {
             return {
-                hungerDelay: getInputValue(hungerDelayInput, defaultParams.hungerDelay, 0),
+                hungerDelayMean: getInputValue(hungerDelayMeanInput, defaultParams.hungerDelayMean, 0),
+                hungerDelayStd: getInputValue(hungerDelayStdInput, defaultParams.hungerDelayStd, 0),
                 maxPrice: getInputValue(maxPriceInput, defaultParams.maxPrice, 0),
                 numConsumers: getInputValue(numConsumersInput, defaultParams.numConsumers, 1),
                 producerPrice: getInputValue(producerPriceInput, defaultParams.producerPrice, 0),
             };
         }
 
+        function sampleNormalInt(mean, stdDev) {
+            if (stdDev === 0) {
+                return mean;
+            }
+
+            let u1 = 0;
+            let u2 = 0;
+            while (u1 === 0) {
+                u1 = Math.random();
+            }
+            while (u2 === 0) {
+                u2 = Math.random();
+            }
+
+            const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+            return Math.max(0, Math.round(mean + z0 * stdDev));
+        }
+
         function createSimulation(Module, params) {
             const abm = new Module.ABM();
 
-            const hungerDelay = new Module.tick(params.hungerDelay);
             for(let traderId = 10; traderId < (params.numConsumers + 10); traderId++){
+                const hungerDelay = new Module.tick(sampleNormalInt(params.hungerDelayMean, params.hungerDelayStd));
                 const consumer = new Module.Consumer(traderId, "FOOD", params.maxPrice, hungerDelay);
                 abm.addAgent(consumer);
             }
