@@ -5,20 +5,25 @@
 #include <vector>
 #include <memory>
 
-class Manager{
-    std::vector<long> traderIds;
-    std::shared_ptr<ABM> abm;
+class AgentManager{
+    std::vector<long> traderIdsUnderMgmt;
+    std::shared_ptr<ABM> abm; // make sealed?
 
     public:
-        Manager(std::shared_ptr<ABM> abm_){
+        AgentManager(std::shared_ptr<ABM> abm_){
             abm = abm_;
         }
 
-        virtual void create(){};
+        virtual std::unique_ptr<Agent> factory();
 
-        virtual ~Manager(){
+        void create(){
+            long traderId = abm->addAgent(std::move(factory()));
+            traderIdsUnderMgmt.push_back(traderId);
+        };
+
+        virtual ~AgentManager(){
             // Clean up agents before destruction
-            abm->removeAgents(traderIds);
+            abm->removeAgents(traderIdsUnderMgmt);
         };
 
 };
