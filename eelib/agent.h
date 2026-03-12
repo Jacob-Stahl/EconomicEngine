@@ -6,6 +6,7 @@
 #include <functional>
 #include <map>
 #include "tick.h"
+#include <memory>
 
 struct Observation{
     tick time;
@@ -58,18 +59,22 @@ class Agent{
         virtual Action lastWill(const Observation& observation){return Action();};
 };
 
+
+struct ConsumerState{
+    std::string asset;
+    tick sinceLastFill = tick(0);
+    long orderOnBookId = 0;
+    unsigned short maxPrice;
+    tick hungerDelay = tick(0);
+};
+
 class Consumer : public Agent{
 
     private:
-        std::string asset;
-        tick sinceLastFill = tick(0);
-        long orderOnBookId;
-        unsigned short maxPrice;
-        tick hungerDelay = tick(0);
+        std::shared_ptr<ConsumerState> state;
 
     public:
-        Consumer(long traderId_, std::string asset_, 
-            unsigned short maxPrice_, tick hungerDelay_);
+        Consumer(long traderId_, std::shared_ptr<ConsumerState> state_);
         Action policy(const Observation& observation) override;
         void orderPlaced(long orderId, const tick now) override;
         void matchFound(const Match& match, const tick now) override;

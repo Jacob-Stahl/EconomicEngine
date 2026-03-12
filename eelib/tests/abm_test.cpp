@@ -141,8 +141,26 @@ class TrackingConsumer : public Consumer {
 public:
     using Consumer::Consumer;
 
+    TrackingConsumer(long traderId, std::string asset, unsigned short maxPrice,
+        tick hungerDelay)
+        : Consumer(traderId, makeState(asset, maxPrice, hungerDelay)) {}
+
     std::vector<Action> actions;
     int matchFoundCalls = 0;
+
+private:
+    static std::shared_ptr<ConsumerState> makeState(
+        const std::string& asset,
+        unsigned short maxPrice,
+        tick hungerDelay) {
+        auto state = std::make_shared<ConsumerState>();
+        state->asset = asset;
+        state->maxPrice = maxPrice;
+        state->hungerDelay = hungerDelay;
+        return state;
+    }
+
+public:
 
     Action policy(const Observation& obs) override {
         Action action = Consumer::policy(obs);
