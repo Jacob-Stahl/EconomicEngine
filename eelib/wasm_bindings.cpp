@@ -2,7 +2,8 @@
 #include <emscripten/val.h>
 #include "order.h"
 #include "matcher.h"
-#include "agent.h" 
+#include "agent.h"
+#include "agent_manager.h"
 #include "abm.h"
 
 using namespace emscripten;
@@ -10,6 +11,20 @@ using namespace emscripten;
 // Helper to manage unique_ptr transfer from JS
 long abm_add_agent(ABM& abm, Agent* agent) {
     return abm.addAgent(std::unique_ptr<Agent>(agent));
+}
+
+std::shared_ptr<ABM> borrowed_abm(ABM* abm) {
+    return std::shared_ptr<ABM>(abm, [](ABM*) {});
+}
+
+ConsumerManager* create_consumer_manager(ABM* abm, const std::string& name,
+    const std::string& asset) {
+    return new ConsumerManager(borrowed_abm(abm), name, asset);
+}
+
+ProducerManager* create_producer_manager(ABM* abm, const std::string& name,
+    const std::string& asset) {
+    return new ProducerManager(borrowed_abm(abm), name, asset);
 }
 
 val action_get_orders_to_place(const Action& action) {
@@ -60,7 +75,6 @@ EMSCRIPTEN_BINDINGS(eelib_module) {
         .value("BUY", Side::BUY)
         .value("SELL", Side::SELL);
 
-    // Bind tick so we can pass it to Consumer
     class_<tick>("tick")
         .constructor<unsigned long>()
         .function("raw", &tick::raw);
@@ -121,11 +135,17 @@ EMSCRIPTEN_BINDINGS(eelib_module) {
     class_<Agent>("Agent")
         .property("traderId", &Agent::traderId);
 
-    class_<Producer, base<Agent>>("Producer")
-        .constructor<long, std::string, unsigned short>();
+    class_<ConsumerManager>("ConsumerManager")
+        .function("changeHungerDelay", &ConsumerManager::changeHungerDelay)
+        .function("changeMaxPrice", &ConsumerManager::changeMaxPrice)
+        .function("changeNumAgents", &ConsumerManager::changeNumAgents);
 
-    class_<Consumer, base<Agent>>("Consumer")
-        .constructor<long, std::string, unsigned short, tick>();
+    class_<ProducerManager>("ProducerManager")
+        .function("changePreferedPrice", &ProducerManager::changePreferedPrice)
+        .function("changeNumAgents", &ProducerManager::changeNumAgents);
+
+    function("createConsumerManager", &create_consumer_manager, allow_raw_pointers());
+    function("createProducerManager", &create_producer_manager, allow_raw_pointers());
 
     class_<ABM>("ABM")
         .constructor<>()

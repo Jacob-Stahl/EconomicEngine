@@ -36,10 +36,12 @@ ConsumerManager::ConsumerManager(
 
 void ConsumerManager::changeHungerDelay(unsigned long mean, unsigned long std){
     hungerDelayDist = std::normal_distribution<double>(mean, std);
+    resampleAgentHungerDelay();
 };
 
 void ConsumerManager::changeMaxPrice(unsigned short mean, unsigned short std){
     maxPriceDist = std::normal_distribution<double>(mean, std);
+    reampleAgentMaxPrice();
 };
 
 void ConsumerManager::resampleAgentHungerDelay(){
@@ -100,6 +102,7 @@ ProducerManager::ProducerManager(
 
 void ProducerManager::changePreferedPrice(unsigned short mean, unsigned short std){
     preferedPriceDist = std::normal_distribution<double>(mean, std);
+    reampleAgentPreferedPrice();
 };
 
 void ProducerManager::reampleAgentPreferedPrice(){

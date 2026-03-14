@@ -42,7 +42,7 @@
             <input id="producerPriceInput" type="number" min="0" step="1" value="50">
         </div>
         <button id="restartButton" disabled>Restart Simulation</button>
-        <p class="control-note">Parameter changes take effect the next time you restart the simulation.</p>
+        <p class="control-note">Parameter changes apply to the active simulation. Use restart only to reset the run.</p>
     </div>
 
     <canvas id="spreadChart" width="960" height="320"></canvas>
@@ -80,7 +80,7 @@
         };
 
         let moduleInstance = null;
-        let activeAbm = null;
+        let activeSimulation = null;
         let step = 0;
         let timerId = null;
 
@@ -94,6 +94,16 @@
                 clearTimeout(timerId);
                 timerId = null;
             }
+        }
+
+        function destroySimulation(simulation) {
+            if (!simulation) {
+                return;
+            }
+
+            simulation.consumerManager.delete();
+            simulation.producerManager.delete();
+            simulation.abm.delete();
         }
 
         function getInputValue(input, fallback, minValue) {
@@ -122,49 +132,45 @@
             };
         }
 
-        function sampleNormalInt(mean, stdDev) {
-            if (stdDev === 0) {
-                return mean;
-            }
-
-            let u1 = 0;
-            let u2 = 0;
-            while (u1 === 0) {
-                u1 = Math.random();
-            }
-            while (u2 === 0) {
-                u2 = Math.random();
-            }
-
-            const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
-            return Math.max(0, Math.round(mean + z0 * stdDev));
-        }
-
         function createSimulation(Module, params) {
             const abm = new Module.ABM();
+            const consumerManager = Module.createConsumerManager(abm, "consumers", "FOOD");
+            const producerManager = Module.createProducerManager(abm, "producer", "FOOD");
 
-            for(let traderId = 10; traderId < (params.numConsumers + 10); traderId++){
-                const hungerDelay = new Module.tick(sampleNormalInt(params.hungerDelayMean, params.hungerDelayStd));
-                const consumer = new Module.Consumer(traderId, "FOOD", params.maxPrice, hungerDelay);
-                abm.addAgent(consumer);
+            const simulation = {
+                abm,
+                consumerManager,
+                producerManager,
+            };
+
+            applyParamsToSimulation(simulation, params);
+
+            return simulation;
+        }
+
+        function applyParamsToSimulation(simulation, params) {
+            if (!simulation) {
+                return;
             }
 
-            const producer = new Module.Producer(1, "FOOD", params.producerPrice);
-            abm.addAgent(producer);
+            simulation.consumerManager.changeHungerDelay(params.hungerDelayMean, params.hungerDelayStd);
+            simulation.consumerManager.changeMaxPrice(params.maxPrice, 0);
+            simulation.consumerManager.changeNumAgents(params.numConsumers);
 
-            return abm;
+            simulation.producerManager.changePreferedPrice(params.producerPrice, 0);
+            simulation.producerManager.changeNumAgents(1);
         }
 
         function runStep() {
-            if (!activeAbm || step >= maxSteps) {
+            if (!activeSimulation || step >= maxSteps) {
                 timerId = null;
                 return;
             }
 
-            activeAbm.simStep();
+            activeSimulation.abm.simStep();
             step++;
 
-            const obs = activeAbm.getLatestObservation();
+            const obs = activeSimulation.abm.getLatestObservation();
             const time = obs.time.raw();
             const spread = obs.assetSpreads.get("FOOD");
             const depth = obs.assetOrderDepths.get("FOOD");
@@ -184,12 +190,30 @@
             stopSimulation();
             step = 0;
             resetCharts();
-            activeAbm = createSimulation(moduleInstance, getSimulationParams());
+
+            destroySimulation(activeSimulation);
+            activeSimulation = createSimulation(moduleInstance, getSimulationParams());
             runStep();
         }
 
         restartButton.addEventListener('click', () => {
             startSimulation();
+        });
+
+        [
+            hungerDelayMeanInput,
+            hungerDelayStdInput,
+            maxPriceInput,
+            numConsumersInput,
+            producerPriceInput,
+        ].forEach(input => {
+            input.addEventListener('change', () => {
+                if (!activeSimulation) {
+                    return;
+                }
+
+                applyParamsToSimulation(activeSimulation, getSimulationParams());
+            });
         });
 
         window.createEelib().then(Module => {
