@@ -21,7 +21,7 @@ class AgentManager{
 
         /// @brief produces the desired agent
         /// @return 
-        virtual std::unique_ptr<Agent> factory();
+        virtual std::unique_ptr<Agent> factory() = 0;
 
         void create(){
             long traderId = abm->addAgent(std::move(factory()));
@@ -59,6 +59,8 @@ class ConsumerManager : public AgentManager{
         void changeMaxPrice(unsigned short mean, unsigned short std);
 
         std::unique_ptr<Agent> factory() override;
+
+        void changeNumAgents(unsigned int numAgents);
 };
 
 class ProducerManager : public AgentManager{
@@ -79,5 +81,7 @@ class ProducerManager : public AgentManager{
         void changePreferedPrice(unsigned short mean, unsigned short std);
 
         std::unique_ptr<Agent> factory() override;
+
+        void changeNumAgents(unsigned int numAgents);
 };
 

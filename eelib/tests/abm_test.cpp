@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "../abm.h"
 #include "../agent.h"
+#include "../agent_manager.h"
 
 class MockAgent : public Agent {
 public:
@@ -204,6 +205,23 @@ TEST(ProducerTest, SharedStateTracksQtyPerTick) {
     EXPECT_EQ(action.ordersToPlace[0].type, MARKET);
     EXPECT_EQ(action.ordersToPlace[0].qty, 2u);
     EXPECT_EQ(state->qtyPerTick, 2u);
+}
+
+TEST(ProducerManagerTest, ChangeNumAgentsTracksABMSize) {
+    auto abm = std::make_shared<ABM>();
+
+    {
+        ProducerManager manager(abm, "producers", "FOOD");
+        manager.changePreferedPrice(100, 0);
+
+        manager.changeNumAgents(3);
+        EXPECT_EQ(abm->getNumAgents(), 3u);
+
+        manager.changeNumAgents(1);
+        EXPECT_EQ(abm->getNumAgents(), 1u);
+    }
+
+    EXPECT_EQ(abm->getNumAgents(), 0u);
 }
 
 TEST_F(ABMTest, ProducerConsumerOneStep) {
