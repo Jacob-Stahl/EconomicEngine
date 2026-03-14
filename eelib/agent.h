@@ -7,6 +7,7 @@
 #include <map>
 #include "tick.h"
 #include <memory>
+#include <vector>
 
 struct Observation{
     tick time;
@@ -17,29 +18,47 @@ struct Observation{
 };
 
 struct Action{
-    bool placeOrder = false;
-    Order order;
-
-    bool cancelOrder = false;
-    long doomedOrderId;
+    std::vector<Order> ordersToPlace;
+    std::vector<long> orderIdsToCancel;
 
     Action() = default;
 
-    Action(Order& order_){
-        order = order_,
-        placeOrder = true;
+    explicit Action(const Order& order_){
+        ordersToPlace.push_back(order_);
     }
 
-    Action(Order& order_, long doomedOrderId_){
-        placeOrder = true;
-        order = order_;
-        cancelOrder = true;
-        doomedOrderId = doomedOrderId_;
+    Action(const Order& order_, long doomedOrderId_){
+        ordersToPlace.push_back(order_);
+        orderIdsToCancel.push_back(doomedOrderId_);
     }
 
-    Action(long doomedOrderId_){
-        cancelOrder = true;
-        doomedOrderId = doomedOrderId_;
+    explicit Action(long doomedOrderId_){
+        orderIdsToCancel.push_back(doomedOrderId_);
+    }
+
+    explicit Action(std::vector<Order> ordersToPlace_)
+        : ordersToPlace(std::move(ordersToPlace_))
+    {}
+
+    explicit Action(std::vector<long> orderIdsToCancel_)
+        : orderIdsToCancel(std::move(orderIdsToCancel_))
+    {}
+
+    Action(std::vector<Order> ordersToPlace_, std::vector<long> orderIdsToCancel_)
+        : ordersToPlace(std::move(ordersToPlace_)),
+          orderIdsToCancel(std::move(orderIdsToCancel_))
+    {}
+
+    void addOrder(const Order& order_){
+        ordersToPlace.push_back(order_);
+    }
+
+    void addCancellation(long doomedOrderId_){
+        orderIdsToCancel.push_back(doomedOrderId_);
+    }
+
+    bool empty() const {
+        return ordersToPlace.empty() && orderIdsToCancel.empty();
     }
 };
 
@@ -75,6 +94,8 @@ class Consumer : public Agent{
 
     public:
         Consumer(long traderId_, std::shared_ptr<ConsumerState> state_);
+        Consumer(long traderId_, std::string asset_, unsigned short maxPrice_,
+            tick hungerDelay_);
         Action policy(const Observation& observation) override;
         void orderPlaced(long orderId, const tick now) override;
         void matchFound(const Match& match, const tick now) override;

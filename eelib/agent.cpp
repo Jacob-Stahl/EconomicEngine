@@ -15,6 +15,15 @@ Consumer::Consumer(long traderId_, std::shared_ptr<ConsumerState> state_)
     : Agent(traderId_), state(std::move(state_))
 {}
 
+Consumer::Consumer(long traderId_, std::string asset_, unsigned short maxPrice_,
+    tick hungerDelay_)
+    : Agent(traderId_), state(std::make_shared<ConsumerState>())
+{
+    state->asset = std::move(asset_);
+    state->maxPrice = maxPrice_;
+    state->hungerDelay = hungerDelay_;
+}
+
 Action Consumer::policy(const Observation& observation){
     
     // Get new limit price based on current hunger

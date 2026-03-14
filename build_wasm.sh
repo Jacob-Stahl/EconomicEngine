@@ -1,5 +1,12 @@
 #!/bin/bash
 
+set -euo pipefail
+
+if ! command -v emcc >/dev/null 2>&1; then
+    echo "emcc not found. Install and activate the Emscripten SDK before building." >&2
+    exit 1
+fi
+
 # Ensure output directory exists
 mkdir -p webdemo
 

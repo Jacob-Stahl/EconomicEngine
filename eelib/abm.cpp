@@ -77,14 +77,14 @@ void ABM::simStep(){
     // Execute actions for all agents
     for(auto& agent: agents){
         auto action = agent->policy(latestObservation);
-        
-        if(action.cancelOrder){
-            cancelOrderWithAllMatchers(action.doomedOrderId);
-            agent->orderCanceled(action.doomedOrderId, tickCounter);
-        };
 
-        if(action.placeOrder){
-            Order order{action.order};
+        for(auto doomedOrderId : action.orderIdsToCancel){
+            cancelOrderWithAllMatchers(doomedOrderId);
+            agent->orderCanceled(doomedOrderId, tickCounter);
+        }
+
+        for(const auto& requestedOrder : action.ordersToPlace){
+            Order order{requestedOrder};
             order.traderId = agent->traderId;
             order.ordId = ++nextOrderId;
             addMatcherIfNeeded(order.asset);
@@ -102,7 +102,7 @@ void ABM::simStep(){
                 // TODO: notify placement failed?
             }
         }
-    };
+    }
 
     routeMatches(notifier.matches);
     ++tickCounter;
@@ -151,8 +151,8 @@ void ABM::removeAgents(const std::vector<size_t>& agentsToRemove){
 
         // Carry out final will
         auto finalAction = agent->lastWill(latestObservation);
-        if(finalAction.cancelOrder){
-            cancelOrderWithAllMatchers(finalAction.doomedOrderId);
+        for(auto doomedOrderId : finalAction.orderIdsToCancel){
+            cancelOrderWithAllMatchers(doomedOrderId);
         }
 
         // TODO: Order placements after death not enforceable yet. fine for now

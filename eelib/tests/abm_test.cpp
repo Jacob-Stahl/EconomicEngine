@@ -314,7 +314,7 @@ TEST_F(ABMTest, RealConsumerMatchFoundResetsHungerAfterFill) {
     abm.simStep();
 
     ASSERT_EQ(pConsumer->actions.size(), 4);
-    EXPECT_FALSE(pConsumer->actions[3].cancelOrder);
+    EXPECT_TRUE(pConsumer->actions[3].orderIdsToCancel.empty());
 
     Depth depthAfterReset = abm.getLatestObservation().assetOrderDepths.at("FOOD");
     EXPECT_TRUE(depthAfterReset.bidBins.empty());
@@ -441,6 +441,8 @@ public:
     bool orderPlacedCalled = false;
     bool orderCanceledCalled = false;
     bool matchFoundCalled = false;
+    std::vector<long> canceledOrderIds;
+    std::vector<long> placedOrderIds;
 
     Action nextAction;
 
@@ -453,11 +455,13 @@ public:
     void orderPlaced(long orderId, tick now) override {
         lastOrderPlacedTick = now;
         orderPlacedCalled = true;
+        placedOrderIds.push_back(orderId);
     }
 
     void orderCanceled(long orderId, tick now) override {
         lastOrderCanceledTick = now;
         orderCanceledCalled = true;
+        canceledOrderIds.push_back(orderId);
     }
 
     void matchFound(const Match& match, tick now) override {
@@ -556,4 +560,54 @@ TEST_F(ABMTest, AgentReceivesCorrectTickOnMatch) {
 
     EXPECT_TRUE(producer->orderPlacedCalled);
     EXPECT_EQ(producer->lastOrderPlacedTick.raw(), 2);
+}
+
+TEST_F(ABMTest, AggregateActionProcessesMultipleCancellationsAndPlacements) {
+    auto agentPtr = std::make_unique<TickSpyAgent>(0);
+    TickSpyAgent* agent = agentPtr.get();
+    abm.addAgent(std::move(agentPtr));
+
+    Order firstOrder("ASSET", BUY, LIMIT, 100, 1);
+    Order secondOrder("ASSET", BUY, LIMIT, 101, 1);
+
+    Action initialAction;
+    initialAction.addOrder(firstOrder);
+    initialAction.addOrder(secondOrder);
+    agent->nextAction = initialAction;
+
+    abm.simStep();
+
+    ASSERT_EQ(agent->placedOrderIds.size(), 2);
+
+    auto obs = abm.getLatestObservation();
+    ASSERT_TRUE(obs.assetOrderDepths.count("ASSET"));
+    Depth depth = obs.assetOrderDepths.at("ASSET");
+    ASSERT_EQ(depth.bidBins.size(), 2);
+    EXPECT_EQ(depth.bidBins[0].price, 101);
+    EXPECT_EQ(depth.bidBins[1].price, 100);
+
+    Action cancelAndReplace;
+    cancelAndReplace.addCancellation(agent->placedOrderIds[0]);
+    cancelAndReplace.addCancellation(agent->placedOrderIds[1]);
+
+    Order replacementOne("ASSET", BUY, LIMIT, 99, 1);
+    Order replacementTwo("ASSET", BUY, LIMIT, 98, 1);
+    cancelAndReplace.addOrder(replacementOne);
+    cancelAndReplace.addOrder(replacementTwo);
+    agent->nextAction = cancelAndReplace;
+
+    abm.simStep();
+
+    ASSERT_EQ(agent->canceledOrderIds.size(), 2);
+    EXPECT_EQ(agent->canceledOrderIds[0], agent->placedOrderIds[0]);
+    EXPECT_EQ(agent->canceledOrderIds[1], agent->placedOrderIds[1]);
+    ASSERT_EQ(agent->placedOrderIds.size(), 4);
+
+    obs = abm.getLatestObservation();
+    depth = obs.assetOrderDepths.at("ASSET");
+    ASSERT_EQ(depth.bidBins.size(), 2);
+    EXPECT_EQ(depth.bidBins[0].price, 99);
+    EXPECT_EQ(depth.bidBins[0].totalQty, 1);
+    EXPECT_EQ(depth.bidBins[1].price, 98);
+    EXPECT_EQ(depth.bidBins[1].totalQty, 2);
 }
