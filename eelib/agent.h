@@ -103,15 +103,21 @@ class Consumer : public Agent{
         Action lastWill(const Observation& observation) override;
 };
 
-class Producer : public Agent{
+struct ProducerState {
     std::string asset;
     unsigned short preferedPrice;
     unsigned int qtyPerTick = 1;
+};
+
+class Producer : public Agent{
+    private:
+        std::shared_ptr<ProducerState> state;
 
     public:
+        Producer(long traderId_, std::shared_ptr<ProducerState> state_);
         Producer(long traderId_, std::string asset, 
             unsigned short preferedPrice);
-        virtual Action policy(const Observation& observation);
+        Action policy(const Observation& observation) override;
 };
 
 inline double fast_sigmoid(double x) {

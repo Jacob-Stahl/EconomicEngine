@@ -182,6 +182,30 @@ public:
     }
 };
 
+TEST(ProducerTest, SharedStateTracksQtyPerTick) {
+    auto state = std::make_shared<ProducerState>();
+    state->asset = "FOOD";
+    state->preferedPrice = 100;
+
+    Producer producer(1, state);
+
+    Observation observation;
+    Spread spread;
+    spread.bidsMissing = false;
+    spread.highestBid = 105;
+    observation.assetSpreads[state->asset] = spread;
+
+    Action action = producer.policy(observation);
+
+    ASSERT_EQ(action.ordersToPlace.size(), 1);
+    EXPECT_TRUE(action.orderIdsToCancel.empty());
+    EXPECT_EQ(action.ordersToPlace[0].asset, state->asset);
+    EXPECT_EQ(action.ordersToPlace[0].side, SELL);
+    EXPECT_EQ(action.ordersToPlace[0].type, MARKET);
+    EXPECT_EQ(action.ordersToPlace[0].qty, 2u);
+    EXPECT_EQ(state->qtyPerTick, 2u);
+}
+
 TEST_F(ABMTest, ProducerConsumerOneStep) {
     // 1 Producer, 3 Consumers
     abm.addAgent(std::make_unique<MockProducerAgent>(0));
