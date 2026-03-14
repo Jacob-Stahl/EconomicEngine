@@ -11,6 +11,7 @@ set(EELIB_SOURCES
 		notifier.cpp
 		abm.cpp
 		agent.cpp
+		agent_manager.cpp
 )
 
 add_library(eelib STATIC ${EELIB_SOURCES})
