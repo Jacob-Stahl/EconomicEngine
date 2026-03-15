@@ -128,6 +128,9 @@ struct Recipe {
     // Asset - Amount
     std::map<std::string, int> inputs;
     std::map<std::string, int> outputs;
+
+    // Could be negative, if the recipe produces money...
+    long cost = 0;
 };
 
 class Inventory {
@@ -162,8 +165,8 @@ struct ManufacturerState {
 class Manufacturer : public Agent{
     private:
         std::shared_ptr<ManufacturerState> state;
-
-        unsigned short costPerCraft(const Observation& observation);
+        unsigned short costOfProd(const Recipe& recipe, const Observation& observation);
+        unsigned short saleRevenue(const Recipe& recipe, const Observation& observation);
 
     public:
         Manufacturer(long traderId_, std::shared_ptr<ManufacturerState> state);

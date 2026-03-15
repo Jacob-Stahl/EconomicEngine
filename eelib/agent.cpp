@@ -117,7 +117,6 @@ void Inventory::update(const Match& match){
     }
 };
 
-
 void Inventory::update(const std::string& asset, int qtyChange, long cashChange){
     if(assets.find(asset) == assets.end()){
         assets.emplace(asset, qtyChange);
@@ -134,9 +133,12 @@ Manufacturer::Manufacturer(long traderId_, std::shared_ptr<ManufacturerState> st
 {}
 
 Action Manufacturer::policy(const Observation& observation){
-    // procure ingredients (if cost is acceptable)
-    // convert ingredients to products (if all components availible)
-    // sell products (if any)
+    // Evaluate Cost of production
+    // Bid prices for feed stock are the highest bid + 1
+    // Evaluate sale revenue
+
+    // If sale revenue > cost, place bids for remaining required feedstock
+    // Produce and sell. Use all feedstock possible.
     return Action();
 }
 
