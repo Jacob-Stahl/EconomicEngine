@@ -100,6 +100,34 @@ Action Producer::policy(const Observation& observation) {
 }
 
 // Manufacturer Implementation
+void Inventory::update(const Match& match){
+    if(match.buyer.traderId == traderId){
+        auto asset = match.buyer.asset;
+        update(asset, 
+            (match.qty), 
+            match.buyer.price * match.qty
+        );
+    }
+    if(match.seller.traderId == traderId){
+        auto asset = match.seller.asset;
+        update(asset, 
+            -(match.qty),
+            -match.seller.price * match.qty
+        );
+    }
+};
+
+
+void Inventory::update(const std::string& asset, int qtyChange, long cashChange){
+    if(assets.find(asset) == assets.end()){
+        assets.emplace(asset, qtyChange);
+    }
+    else{
+        int newQty = assets.at(asset) + qtyChange;
+        assets[asset] = newQty;
+    }
+    cashBalance += cashChange;
+}
 
 Manufacturer::Manufacturer(long traderId_, std::shared_ptr<ManufacturerState> state_)
     : Agent(traderId_), state(std::move(state_))
@@ -109,4 +137,28 @@ Action Manufacturer::policy(const Observation& observation){
     // procure ingredients (if cost is acceptable)
     // convert ingredients to products (if all components availible)
     // sell products (if any)
+    return Action();
+}
+
+void Manufacturer::orderPlaced(long orderId, const tick now) {
+}
+
+void Manufacturer::matchFound(const Match& match, const tick now) {
+    state->inventory.update(match);
+}
+
+void Manufacturer::orderCanceled(long orderId, const tick now) {
+}
+
+Action Manufacturer::lastWill(const Observation& observation) {
+    std::vector<long> doomedOrderIds;
+    doomedOrderIds.reserve(state->placedOrders.size());
+
+    for (const auto& [asset, orderId] : state->placedOrders) {
+        if (orderId > 0) {
+            doomedOrderIds.push_back(orderId);
+        }
+    }
+
+    return Action(std::move(doomedOrderIds));
 }

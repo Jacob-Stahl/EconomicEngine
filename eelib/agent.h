@@ -125,16 +125,38 @@ inline double fast_sigmoid(double x) {
 };
 
 struct Recipe {
+    // Asset - Amount
+    std::map<std::string, int> inputs;
+    std::map<std::string, int> outputs;
+};
 
-    // Assets - Amounts
-    std::map<std::string, unsigned int> inputs;
-    std::map<std::string, unsigned int> outputs;
+class Inventory {
+    long traderId;
+    std::map<std::string, long> assets{};
+    long cashBalance = 0;
+
+    public:
+        Inventory(long traderId_) : traderId(traderId_){};
+        void update(const Match& match);
+        void update(const std::string& asset, int qtyChange, long cashChange);
+
+        int qty(const std::string& asset) const {
+            auto it = assets.find(asset);
+            return it == assets.end() ? 0 : it->second;
+        }
+
+        long cash() const {
+            return cashBalance;
+        }
 };
 
 struct ManufacturerState {
     Recipe recipe;
-    unsigned short maxCost;
-    
+    unsigned short maxCost = 0;
+    Inventory inventory{0};
+
+    // Asset - OrderId
+    std::map<std::string, long> placedOrders;
 };
 
 class Manufacturer : public Agent{

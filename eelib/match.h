@@ -8,10 +8,10 @@
 struct Match{
     Order buyer;
     Order seller;
-    long int qty;
+    long qty;
 
     public:
-        Match(const Order& ord1, const Order& ord2, long int qty)
+        Match(const Order& ord1, const Order& ord2, long qty)
         {
             if (ord1.side == ord2.side) { std::logic_error("Can't match orders on the same side!"); }
             if (ord1.side == BUY){

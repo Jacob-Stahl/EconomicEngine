@@ -24,6 +24,10 @@ unsigned short clampUnsignedShortSample(double value) {
 
 }
 
+std::unique_ptr<Agent> AgentManager::factory(){
+    return nullptr;
+}
+
 // Consumer Manager
 ConsumerManager::ConsumerManager(
     std::shared_ptr<ABM> abm_,
