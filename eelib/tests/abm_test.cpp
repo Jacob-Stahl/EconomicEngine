@@ -224,6 +224,67 @@ TEST(ProducerManagerTest, ChangeNumAgentsTracksABMSize) {
     EXPECT_EQ(abm->getNumAgents(), 0u);
 }
 
+TEST(ConsumerManagerTest, StateChangesPropagateToManagedConsumersInABM) {
+    auto abm = std::make_shared<ABM>();
+    ConsumerManager manager(abm, "consumers", "FOOD");
+
+    manager.changeHungerDelay(0, 0);
+    manager.changeMaxPrice(10, 0);
+    manager.changeNumAgents(1);
+
+    abm->simStep();
+    abm->simStep();
+
+    Depth initialDepth = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    ASSERT_EQ(initialDepth.bidBins.size(), 1);
+    EXPECT_EQ(initialDepth.bidBins[0].price, 1);
+    EXPECT_EQ(initialDepth.bidBins[0].totalQty, 1);
+
+    manager.changeHungerDelay(100, 0);
+    abm->simStep();
+
+    Depth afterHungerDelayChange = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    EXPECT_TRUE(afterHungerDelayChange.bidBins.empty());
+
+    manager.changeHungerDelay(0, 0);
+    manager.changeMaxPrice(3, 0);
+    abm->simStep();
+
+    Depth cappedAtThree = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    ASSERT_EQ(cappedAtThree.bidBins.size(), 1);
+    EXPECT_EQ(cappedAtThree.bidBins[0].price, 3);
+
+    manager.changeMaxPrice(1, 0);
+    abm->simStep();
+
+    Depth cappedAtOne = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    ASSERT_EQ(cappedAtOne.bidBins.size(), 1);
+    EXPECT_EQ(cappedAtOne.bidBins[0].price, 1);
+}
+
+TEST(ProducerManagerTest, StateChangesPropagateToManagedProducersInABM) {
+    auto abm = std::make_shared<ABM>();
+    ProducerManager manager(abm, "producers", "FOOD");
+
+    manager.changePreferedPrice(200, 0);
+    manager.changeNumAgents(1);
+    abm->addAgent(std::make_unique<MockConsumerAgent>(0));
+
+    abm->simStep();
+    abm->simStep();
+
+    Depth depthBeforeChange = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    ASSERT_EQ(depthBeforeChange.bidBins.size(), 1);
+    EXPECT_EQ(depthBeforeChange.bidBins[0].price, 100);
+    EXPECT_EQ(depthBeforeChange.bidBins[0].totalQty, 1);
+
+    manager.changePreferedPrice(50, 0);
+    abm->simStep();
+
+    Depth depthAfterChange = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    EXPECT_TRUE(depthAfterChange.bidBins.empty());
+}
+
 TEST_F(ABMTest, ProducerConsumerOneStep) {
     // 1 Producer, 3 Consumers
     abm.addAgent(std::make_unique<MockProducerAgent>(0));

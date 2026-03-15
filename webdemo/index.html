@@ -161,6 +161,22 @@
             simulation.producerManager.changeNumAgents(1);
         }
 
+        function getLoggedParamValue(input, params) {
+            if (input === hungerDelayMeanInput) {
+                return params.hungerDelayMean;
+            }
+            if (input === hungerDelayStdInput) {
+                return params.hungerDelayStd;
+            }
+            if (input === maxPriceInput) {
+                return params.maxPrice;
+            }
+            if (input === numConsumersInput) {
+                return params.numConsumers;
+            }
+            return params.producerPrice;
+        }
+
         function runStep() {
             if (!activeSimulation || step >= maxSteps) {
                 timerId = null;
@@ -208,11 +224,14 @@
             producerPriceInput,
         ].forEach(input => {
             input.addEventListener('change', () => {
+                const params = getSimulationParams();
+                console.log(`[simulation] ${input.id} changed to ${getLoggedParamValue(input, params)}`);
+
                 if (!activeSimulation) {
                     return;
                 }
 
-                applyParamsToSimulation(activeSimulation, getSimulationParams());
+                applyParamsToSimulation(activeSimulation, params);
             });
         });
 
