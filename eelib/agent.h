@@ -123,3 +123,31 @@ class Producer : public Agent{
 inline double fast_sigmoid(double x) {
     return x / (1 + std::abs(x));
 };
+
+struct Recipe {
+
+    // Assets - Amounts
+    std::map<std::string, unsigned int> inputs;
+    std::map<std::string, unsigned int> outputs;
+};
+
+struct ManufacturerState {
+    Recipe recipe;
+    unsigned short maxCost;
+    
+};
+
+class Manufacturer : public Agent{
+    private:
+        std::shared_ptr<ManufacturerState> state;
+
+        unsigned short costPerCraft(const Observation& observation);
+
+    public:
+        Manufacturer(long traderId_, std::shared_ptr<ManufacturerState> state);
+        Action policy(const Observation& observation) override;
+        void orderPlaced(long orderId, const tick now) override;
+        void matchFound(const Match& match, const tick now) override;
+        void orderCanceled(long orderId, const tick now) override;
+        Action lastWill(const Observation& observation) override;
+};

@@ -98,3 +98,15 @@ Action Producer::policy(const Observation& observation) {
     Order order(state->asset, SELL, MARKET, 0, state->qtyPerTick);
     return Action{order};
 }
+
+// Manufacturer Implementation
+
+Manufacturer::Manufacturer(long traderId_, std::shared_ptr<ManufacturerState> state_)
+    : Agent(traderId_), state(std::move(state_))
+{}
+
+Action Manufacturer::policy(const Observation& observation){
+    // procure ingredients (if cost is acceptable)
+    // convert ingredients to products (if all components availible)
+    // sell products (if any)
+}
