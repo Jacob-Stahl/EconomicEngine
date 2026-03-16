@@ -156,6 +156,7 @@ class Inventory {
 struct ManufacturerState {
     Recipe recipe;
     Inventory inventory;
+    tick timeSinceLastSale = tick(0);
 
     // Asset - OrderId
     std::map<std::string, long> placedOrders;

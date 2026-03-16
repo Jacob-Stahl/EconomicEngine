@@ -295,6 +295,9 @@ void Manufacturer::orderPlaced(long orderId, const tick now) {
 }
 
 void Manufacturer::matchFound(const Match& match, const tick now) {
+    if(match.seller.traderId == traderId){
+        state->timeSinceLastSale = tick(0);
+    }
     state->inventory.update(match);
 }
 
