@@ -85,3 +85,36 @@ class ProducerManager : public AgentManager{
         void changeNumAgents(unsigned int numAgents);
 };
 
+class ManufacturerManager : public AgentManager{
+    std::mt19937 gen;
+    std::vector<std::shared_ptr<ManufacturerState>> states;
+    Recipe recipe;
+
+    public:
+        bool numAgentsFixed = true;
+
+        /// @brief Increase/Decrease the number of agents by this proportion
+        double numAgentsScaleFactor = 0.05;
+        tick neutralAge = tick(5);
+        tick staleAge = tick(10);
+
+        ManufacturerManager(
+            std::shared_ptr<ABM> abm_,
+            std::string name_,
+            Recipe recipe);
+
+        std::unique_ptr<Agent> factory() override;
+        
+        void changeNumAgents(unsigned int numAgents);
+        
+
+        // TODO How do we incorperate this into the game loop? Ideally the ABM doesn't know about these managers...
+
+        /// @brief Find the new number of agents. 
+        /// @return 
+        unsigned int newNumAgents();
+
+        // agent_diff = (recent_sale_count - stale_count) * scale_factor
+        // new_num_agents = num_agents + agent_diff
+        
+};

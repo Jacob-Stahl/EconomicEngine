@@ -288,6 +288,8 @@ Action Manufacturer::policy(const Observation& observation){
     auto productOrders = sellOrders();
     orders.insert(orders.end(), productOrders.begin(), productOrders.end());
 
+    ++state->timeSinceLastSale;
+
     return Action(std::move(orders));
 }
 
