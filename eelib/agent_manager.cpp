@@ -1,6 +1,7 @@
 #include "agent_manager.h"
 #include "agent.h"
 
+#include <cmath>
 #include <algorithm>
 #include <limits>
 #include <memory>
@@ -145,4 +146,37 @@ void ProducerManager::changeNumAgents(unsigned int numAgents){
     if (!doomedIds.empty()) {
         abm->removeAgents(doomedIds);
     }
+}
+
+// Manufacturer Manager
+
+unsigned int ManufacturerManager::newNumAgents() {
+    const long currentCount = static_cast<long>(states.size());
+
+    if (numAgentsFixed || currentCount <= 0) {
+        return static_cast<unsigned int>(std::max(0L, currentCount));
+    }
+
+    long recentSaleCount = 0;
+    long staleCount = 0;
+
+    for (const auto& state : states) {
+        if (state->timeSinceLastSale < neutralAge) {
+            ++recentSaleCount;
+        } else if (state->timeSinceLastSale >= staleAge) {
+            ++staleCount;
+        }
+    }
+
+    const double rawAgentDiff =
+        static_cast<double>(recentSaleCount - staleCount) * numAgentsScaleFactor;
+
+    long agentDiff = static_cast<long>(std::round(rawAgentDiff));
+    if (agentDiff == 0 && recentSaleCount != staleCount) {
+        // Prevents the count from getting stuck with low agent populations
+        agentDiff = (recentSaleCount > staleCount) ? 1 : -1;
+    }
+    const long nextCount = std::max(0L, currentCount + agentDiff);
+
+    return static_cast<unsigned int>(nextCount);
 }
