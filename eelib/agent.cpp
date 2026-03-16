@@ -2,6 +2,7 @@
 #include <string>
 #include "tick.h"
 #include <algorithm>
+#include <limits>
 
 Agent::Agent(long id) : traderId(id) {}
 
@@ -130,16 +131,164 @@ void Inventory::update(const std::string& asset, int qtyChange, long cashChange)
 
 Manufacturer::Manufacturer(long traderId_, std::shared_ptr<ManufacturerState> state_)
     : Agent(traderId_), state(std::move(state_))
-{}
+{
+    state->inventory = Inventory(traderId_);
+}
+
+long Manufacturer::costOfProd(
+    const Recipe& recipe,
+    const Observation& observation) {
+    long totalCost = recipe.cost;
+
+    for (const auto& [asset, qty] : recipe.inputs) {
+        auto spreadIt = observation.assetSpreads.find(asset);
+        unsigned short bidPrice = 1;
+
+        if (spreadIt != observation.assetSpreads.end() && !spreadIt->second.bidsMissing) {
+            bidPrice = static_cast<unsigned short>(std::min<long>(
+
+                // Add +1 tp bid price. We want to out bid the other buy limits.
+                // This puts natural upward pressure on the price.
+                static_cast<long>(spreadIt->second.highestBid) + 1,
+                std::numeric_limits<unsigned short>::max()));
+        }
+
+        totalCost += static_cast<long>(qty) * bidPrice;
+    }
+
+    return totalCost;
+}
+
+long Manufacturer::saleRevenue(
+    const Recipe& recipe,
+    const Observation& observation) {
+    long totalRevenue = 0;
+
+    for (const auto& [asset, qty] : recipe.outputs) {
+        auto spreadIt = observation.assetSpreads.find(asset);
+        unsigned short salePrice = 0;
+
+        if (spreadIt != observation.assetSpreads.end() && !spreadIt->second.bidsMissing) {
+            salePrice = spreadIt->second.highestBid;
+        }
+
+        totalRevenue += static_cast<long>(qty) * salePrice;
+    }
+
+    return totalRevenue;
+}
+
+std::vector<Order> Manufacturer::procurementOrders(
+    const Recipe& recipe,
+    const Observation& observation) {
+    std::vector<Order> orders;
+    orders.reserve(recipe.inputs.size());
+
+    for (const auto& [asset, requiredQty] : recipe.inputs) {
+        long deficit = static_cast<long>(requiredQty) - state->inventory.qty(asset);
+        if (deficit <= 0) {
+            continue;
+        }
+
+        unsigned short bidPrice = 1;
+        auto spreadIt = observation.assetSpreads.find(asset);
+        if (spreadIt != observation.assetSpreads.end() && !spreadIt->second.bidsMissing) {
+            bidPrice = static_cast<unsigned short>(std::min<long>(
+                static_cast<long>(spreadIt->second.highestBid) + 1,
+                std::numeric_limits<unsigned short>::max()));
+        }
+
+        orders.emplace_back(
+            asset,
+            BUY,
+            LIMIT,
+            bidPrice,
+            static_cast<unsigned int>(std::min<long>(
+                deficit,
+                std::numeric_limits<unsigned int>::max())));
+    }
+
+    return orders;
+}
+
+void Manufacturer::craft() {
+    if (state->recipe.inputs.empty()) {
+        return;
+    }
+
+    long craftCount = std::numeric_limits<long>::max();
+    bool hasPositiveInput = false;
+
+    for (const auto& [asset, requiredQty] : state->recipe.inputs) {
+        if (requiredQty <= 0) {
+            continue;
+        }
+
+        hasPositiveInput = true;
+        craftCount = std::min(
+            craftCount,
+            state->inventory.qty(asset) / static_cast<long>(requiredQty));
+    }
+
+    if (!hasPositiveInput || craftCount <= 0) {
+        return;
+    }
+
+    for (const auto& [asset, requiredQty] : state->recipe.inputs) {
+        if (requiredQty <= 0) {
+            continue;
+        }
+        state->inventory.update(asset, -requiredQty * craftCount, 0);
+    }
+
+    for (const auto& [asset, producedQty] : state->recipe.outputs) {
+        if (producedQty <= 0) {
+            continue;
+        }
+        state->inventory.update(asset, producedQty * craftCount, 0);
+    }
+}
+
+std::vector<Order> Manufacturer::sellOrders() {
+    std::vector<Order> orders;
+    orders.reserve(state->recipe.outputs.size());
+
+    for (const auto& [asset, producedQty] : state->recipe.outputs) {
+        (void)producedQty;
+        long inventoryQty = state->inventory.qty(asset);
+        if (inventoryQty <= 0) {
+            continue;
+        }
+
+        orders.emplace_back(
+            asset,
+            SELL,
+            MARKET,
+            0,
+            static_cast<unsigned int>(std::min<long>(
+                inventoryQty,
+                std::numeric_limits<unsigned int>::max())));
+    }
+
+    return orders;
+}
 
 Action Manufacturer::policy(const Observation& observation){
-    // Evaluate Cost of production
-    // Bid prices for feed stock are the highest bid + 1
-    // Evaluate sale revenue
+    long prodCost = costOfProd(state->recipe, observation);
+    long expectedSaleRevenue = saleRevenue(state->recipe, observation);
+    std::vector<Order> orders;
 
     // If sale revenue > cost, place bids for remaining required feedstock
-    // Produce and sell. Use all feedstock possible.
-    return Action();
+    if (expectedSaleRevenue > prodCost) {
+        orders = procurementOrders(state->recipe, observation);
+    }
+
+    craft();
+
+    auto productOrders = sellOrders();
+    orders.insert(orders.end(), productOrders.begin(), productOrders.end());
+
+    return Action(std::move(orders));
 }
 
 void Manufacturer::orderPlaced(long orderId, const tick now) {

@@ -155,8 +155,7 @@ class Inventory {
 
 struct ManufacturerState {
     Recipe recipe;
-    unsigned short maxCost = 0;
-    Inventory inventory{0};
+    Inventory inventory;
 
     // Asset - OrderId
     std::map<std::string, long> placedOrders;
@@ -165,9 +164,21 @@ struct ManufacturerState {
 class Manufacturer : public Agent{
     private:
         std::shared_ptr<ManufacturerState> state;
-        unsigned short costOfProd(const Recipe& recipe, const Observation& observation);
-        unsigned short saleRevenue(const Recipe& recipe, const Observation& observation);
+        long costOfProd(const Recipe& recipe, const Observation& observation);
+        long saleRevenue(const Recipe& recipe, const Observation& observation);
 
+        /// @brief Place orders required to fill remaining prerequisites for the recipe.
+        /// @param recipe 
+        /// @param observation 
+        /// @return 
+        std::vector<Order> procurementOrders(const Recipe& recipe, const Observation& observation);
+
+        /// @brief Craft as many products as possible with the availible ingredients
+        void craft();
+
+        /// @brief Sell all products in inventory
+        /// @return 
+        std::vector<Order> sellOrders();
     public:
         Manufacturer(long traderId_, std::shared_ptr<ManufacturerState> state);
         Action policy(const Observation& observation) override;
