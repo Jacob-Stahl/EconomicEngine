@@ -150,6 +150,26 @@ void ProducerManager::changeNumAgents(unsigned int numAgents){
 
 // Manufacturer Manager
 
+ManufacturerManager::ManufacturerManager(
+    std::shared_ptr<ABM> abm_,
+    std::string name_,
+    Recipe recipe_)
+    : AgentManager(abm_, std::move(name_)),
+      recipe(std::move(recipe_))
+{}
+
+std::unique_ptr<Agent> ManufacturerManager::factory(){
+    auto state = std::make_shared<ManufacturerState>(ManufacturerState{
+        recipe,
+        Inventory(0),
+        neutralAge, // initialize agents to a neutral age
+        {}
+    });
+
+    states.push_back(state);
+    return std::make_unique<Manufacturer>(0, state);
+}
+
 unsigned int ManufacturerManager::newNumAgents() {
     const long currentCount = static_cast<long>(states.size());
 
