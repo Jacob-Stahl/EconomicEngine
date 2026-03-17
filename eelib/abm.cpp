@@ -1,6 +1,8 @@
 #include "abm.h"
 #include "utils.h"
 
+#include <algorithm>
+
 void ABM::observe(){
     latestObservation.time = tickCounter;
     for(auto& it : orderMatchers){
@@ -114,6 +116,8 @@ void ABM::simStep(){
     // observe again to keep latestObservation up to date.
     // TODO: fix this double work
     observe();
+
+    runTickCallbacks();
 };
 
 long ABM::addAgent(std::unique_ptr<Agent> agent){
@@ -160,4 +164,27 @@ void ABM::removeAgents(const std::vector<size_t>& agentsToRemove){
 
     // Out to pasture
     removeIdxs<std::unique_ptr<Agent>>(agents, agentsToRemove);
+}
+
+void ABM::runTickCallbacks(){
+    for(auto& callback : tickCallbacks){
+        callback->callBackAction();
+    }
+}
+
+TickCallback* ABM::addTickCallback(std::unique_ptr<TickCallback> callback){
+    TickCallback* rawCallback = callback.get();
+    tickCallbacks.push_back(std::move(callback));
+    return rawCallback;
+}
+
+void ABM::removeTickCallback(TickCallback* callback){
+    tickCallbacks.erase(
+        std::remove_if(
+            tickCallbacks.begin(),
+            tickCallbacks.end(),
+            [callback](const std::unique_ptr<TickCallback>& candidate) {
+                return candidate.get() == callback;
+            }),
+        tickCallbacks.end());
 }

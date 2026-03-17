@@ -25,6 +25,23 @@ unsigned short clampUnsignedShortSample(double value) {
 
 }
 
+class ManufacturerManagerTickCallback : public TickCallback {
+    ManufacturerManager* manager;
+
+public:
+    explicit ManufacturerManagerTickCallback(ManufacturerManager* manager_)
+        : manager(manager_)
+    {}
+
+    void callBackAction() override {
+        if (manager == nullptr || manager->numAgentsFixed) {
+            return;
+        }
+
+        manager->changeNumAgents(manager->newNumAgents());
+    }
+};
+
 std::unique_ptr<Agent> AgentManager::factory(){
     return nullptr;
 }
@@ -156,7 +173,17 @@ ManufacturerManager::ManufacturerManager(
     Recipe recipe_)
     : AgentManager(abm_, std::move(name_)),
       recipe(std::move(recipe_))
-{}
+{
+    tickCallbackRegistration = abm->addTickCallback(
+        std::make_unique<ManufacturerManagerTickCallback>(this));
+}
+
+ManufacturerManager::~ManufacturerManager() {
+    if (tickCallbackRegistration != nullptr) {
+        abm->removeTickCallback(tickCallbackRegistration);
+        tickCallbackRegistration = nullptr;
+    }
+}
 
 std::unique_ptr<Agent> ManufacturerManager::factory(){
     auto state = std::make_shared<ManufacturerState>(ManufacturerState{
@@ -168,6 +195,29 @@ std::unique_ptr<Agent> ManufacturerManager::factory(){
 
     states.push_back(state);
     return std::make_unique<Manufacturer>(0, state);
+}
+
+void ManufacturerManager::changeNumAgents(unsigned int numAgents){
+    long diff = static_cast<long>(numAgents) - static_cast<long>(states.size());
+    std::vector<long> doomedIds{};
+
+    while(diff > 0){
+        create();
+        --diff;
+    }
+
+    while(diff < 0){
+        long doomedId = traderIdsUnderMgmt.back();
+        doomedIds.push_back(doomedId);
+
+        traderIdsUnderMgmt.pop_back();
+        states.pop_back();
+        ++diff;
+    }
+
+    if (!doomedIds.empty()) {
+        abm->removeAgents(doomedIds);
+    }
 }
 
 unsigned int ManufacturerManager::newNumAgents() {

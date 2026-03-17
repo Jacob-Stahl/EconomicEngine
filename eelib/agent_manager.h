@@ -89,6 +89,7 @@ class ManufacturerManager : public AgentManager{
     std::mt19937 gen;
     std::vector<std::shared_ptr<ManufacturerState>> states;
     Recipe recipe;
+    TickCallback* tickCallbackRegistration = nullptr;
 
     public:
         bool numAgentsFixed = true;
@@ -102,6 +103,8 @@ class ManufacturerManager : public AgentManager{
             std::shared_ptr<ABM> abm_,
             std::string name_,
             Recipe recipe);
+
+        ~ManufacturerManager() override;
 
         std::unique_ptr<Agent> factory() override;
         

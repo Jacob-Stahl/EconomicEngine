@@ -3,6 +3,8 @@
 #include "../agent.h"
 #include "../agent_manager.h"
 
+#include <utility>
+
 class MockAgent : public Agent {
 public:
     MockAgent(long id) : Agent(id) {}
@@ -15,6 +17,15 @@ public:
 class ABMTest : public ::testing::Test {
 protected:
     ABM abm;
+};
+
+class CountingTickCallback : public TickCallback {
+public:
+    int callCount = 0;
+
+    void callBackAction() override {
+        ++callCount;
+    }
 };
 
 TEST_F(ABMTest, AddAgentReturnsCorrectId) {
@@ -221,6 +232,34 @@ TEST(ProducerManagerTest, ChangeNumAgentsTracksABMSize) {
         EXPECT_EQ(abm->getNumAgents(), 1u);
     }
 
+    EXPECT_EQ(abm->getNumAgents(), 0u);
+}
+
+TEST_F(ABMTest, TickCallbacksRunAfterEveryStep) {
+    auto callback = std::make_unique<CountingTickCallback>();
+    CountingTickCallback* callbackPtr = callback.get();
+    abm.addTickCallback(std::move(callback));
+
+    abm.simStep();
+    abm.simStep();
+
+    EXPECT_EQ(callbackPtr->callCount, 2);
+}
+
+TEST(ManufacturerManagerTest, TickCallbackCanShrinkManufacturerCount) {
+    auto abm = std::make_shared<ABM>();
+    Recipe recipe;
+    ManufacturerManager manager(abm, "manufacturers", recipe);
+
+    manager.numAgentsFixed = false;
+    manager.neutralAge = tick(2);
+    manager.staleAge = tick(4);
+    manager.changeNumAgents(1);
+
+    abm->simStep();
+    EXPECT_EQ(abm->getNumAgents(), 1u);
+
+    abm->simStep();
     EXPECT_EQ(abm->getNumAgents(), 0u);
 }
 
