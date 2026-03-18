@@ -44,3 +44,4 @@ webdemo-svelte/node_modules/
 webdemo-svelte/dist/
 webdemo-svelte/dist-ssr/
 webdemo-svelte/*.local
+webdemo-svelte/.vite/deps/_metadata.json
