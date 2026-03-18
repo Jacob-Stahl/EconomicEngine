@@ -63,25 +63,31 @@ chmod +x build_wasm.sh
 # Run the build script
 ./build_wasm.sh
 ```
-This will generate `eelib.mjs`, `eelib.wasm`, and `eelib.d.ts` in the `webdemo/` folder.
+This will generate `eelib.mjs`, `eelib.wasm`, and `eelib.d.ts` in the `webdemo/` folder and sync the same artifacts into `webdemo-svelte/src/lib/generated/` when the Svelte app is present.
 
-### 2. Run the Local Web Server
-Due to browser security restrictions (CORS), you cannot open the HTML file directly from the filesystem. You must serve it via a local web server.
+### 2. Install the Svelte App
 
 ```bash
-cd webdemo
-python3 -m http.server
+cd webdemo-svelte
+npm install
 ```
 
-### 3. View the Demo
-Open your browser and navigate to:
-[http://localhost:8000](http://localhost:8000)
+### 3. Run the Svelte Dev Server
+
+```bash
+cd webdemo-svelte
+npm run dev
+```
+
+### 4. View the Demo
+Open your browser and navigate to the local Vite URL shown in the terminal, typically:
+[http://localhost:5173](http://localhost:5173)
 
 Check the browser console (Right Click -> Inspect -> Console) to see the output.
 
 ## Deploying the Web Demo to GitHub Pages
 
-This repository includes a GitHub Actions workflow at [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) that builds the WebAssembly demo and publishes the contents of [webdemo](webdemo) to GitHub Pages.
+This repository includes a GitHub Actions workflow at [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) that builds the WebAssembly module, builds the Svelte frontend in [webdemo-svelte](webdemo-svelte), and publishes the contents of `webdemo-svelte/dist` to GitHub Pages.
 
 ### One-time GitHub setup
 
@@ -92,5 +98,5 @@ In your repository settings:
 
 ### Deployment behavior
 
-- Pushes to `main` or `master` that touch the WASM build, the `eelib` sources, or the demo page will trigger a deployment.
+- Pushes to `main` or `master` that touch the WASM build, the `eelib` sources, or the Svelte app will trigger a deployment.
 - You can also trigger the workflow manually from the `Actions` tab.
