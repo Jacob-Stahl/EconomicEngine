@@ -1,4 +1,4 @@
-name: Deploy Web Demo to GitHub Pages
+name: Deploy Svelte Demo to GitHub Pages
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - .github/workflows/deploy-pages.yml
       - build_wasm.sh
       - eelib/**
-      - webdemo/index.html
+      - webdemo-svelte/**
   workflow_dispatch:
 
 permissions:
@@ -28,26 +28,44 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: webdemo-svelte/package-lock.json
+
       - name: Set up Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
           version: latest
 
       - name: Set up GitHub Pages
+        id: pages
         uses: actions/configure-pages@v5
 
-      - name: Build WebAssembly demo
+      - name: Build WebAssembly module
         run: |
           chmod +x build_wasm.sh
           ./build_wasm.sh
 
+      - name: Install Svelte app dependencies
+        working-directory: webdemo-svelte
+        run: npm ci
+
+      - name: Build Svelte demo
+        working-directory: webdemo-svelte
+        env:
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: npm run build
+
       - name: Disable Jekyll processing
-        run: touch webdemo/.nojekyll
+        run: touch webdemo-svelte/dist/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: webdemo
+          path: webdemo-svelte/dist
 
   deploy:
     needs: build
