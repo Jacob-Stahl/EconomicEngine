@@ -214,3 +214,6 @@ eelib/main
 .vscode/c_cpp_properties.json
 webdemo/eelib.js
 webdemo/eelib.wasm
+webdemo/eelib.d.ts
+.gitignore
+webdemo/eelib.mjs

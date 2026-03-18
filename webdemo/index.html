@@ -51,8 +51,8 @@
     <canvas id="depthChart" width="960" height="320"></canvas>
     <div id="depthMeta" class="chart-meta">Waiting for first depth snapshot.</div>
 
-    <script src="eelib.js"></script>
     <script type="module">
+        import createEelib from './eelib.mjs';
         import { createDepthChart, createSpreadChart } from './charts.js';
 
         const restartButton = document.getElementById('restartButton');
@@ -235,7 +235,7 @@
             });
         });
 
-        window.createEelib().then(Module => {
+        createEelib().then(Module => {
             try {
                 moduleInstance = Module;
                 restartButton.disabled = false;

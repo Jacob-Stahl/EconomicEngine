@@ -63,7 +63,7 @@ chmod +x build_wasm.sh
 # Run the build script
 ./build_wasm.sh
 ```
-This will generate `eelib.js` and `eelib.wasm` in the `webdemo/` folder.
+This will generate `eelib.mjs`, `eelib.wasm`, and `eelib.d.ts` in the `webdemo/` folder.
 
 ### 2. Run the Local Web Server
 Due to browser security restrictions (CORS), you cannot open the HTML file directly from the filesystem. You must serve it via a local web server.

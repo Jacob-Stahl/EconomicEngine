@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
+
+cd "$PROJECT_ROOT"
+
 if ! command -v emcc >/dev/null 2>&1; then
     echo "emcc not found. Install and activate the Emscripten SDK before building." >&2
     exit 1
@@ -12,7 +16,7 @@ if ! command -v node >/dev/null 2>&1; then
     exit 1
 fi
 
-OUT_DIR="webdemo"
+OUT_DIR="$PROJECT_ROOT/webdemo"
 
 mkdir -p "$OUT_DIR"
 
