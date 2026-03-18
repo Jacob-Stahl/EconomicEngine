@@ -99,31 +99,7 @@
   });
 </script>
 
-<svelte:head>
-  <title>Python Order Broker Demo</title>
-  <meta
-    name="description"
-    content="Client-only Svelte boilerplate for the Python Order Broker WebAssembly demo."
-  />
-</svelte:head>
-
 <div class="shell">
-  <header class="hero">
-    <div>
-      <p class="eyebrow">Client-Only Svelte Boilerplate</p>
-      <p class="hero-copy">
-        The WebAssembly demo now has a dedicated Svelte app boundary: generated module, loader,
-        controller, controls, and chart components.
-      </p>
-    </div>
-
-    <div class="hero-status">
-      <span class={`status-pill ${status.phase}`}>{status.phase}</span>
-      <strong>{latestTickLabel}</strong>
-      <span>{spreadLabel}</span>
-    </div>
-  </header>
-
   <main class="layout">
     <aside class="sidebar">
       <Controls
