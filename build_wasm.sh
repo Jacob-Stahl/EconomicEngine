@@ -17,6 +17,7 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 
 OUT_DIR="$PROJECT_ROOT/webdemo"
+SVELTE_OUT_DIR="$PROJECT_ROOT/webdemo-svelte/src/lib/generated"
 
 mkdir -p "$OUT_DIR"
 
@@ -47,3 +48,14 @@ echo "Generated:"
 echo "  $OUT_DIR/eelib.mjs"
 echo "  $OUT_DIR/eelib.wasm"
 echo "  $OUT_DIR/eelib.d.ts"
+
+if [[ -d "$SVELTE_OUT_DIR" ]]; then
+    cp "$OUT_DIR/eelib.mjs" "$SVELTE_OUT_DIR/eelib.mjs"
+    cp "$OUT_DIR/eelib.wasm" "$SVELTE_OUT_DIR/eelib.wasm"
+    cp "$OUT_DIR/eelib.d.ts" "$SVELTE_OUT_DIR/eelib.d.ts"
+
+    echo "Synced Svelte artifacts:"
+    echo "  $SVELTE_OUT_DIR/eelib.mjs"
+    echo "  $SVELTE_OUT_DIR/eelib.wasm"
+    echo "  $SVELTE_OUT_DIR/eelib.d.ts"
+fi
