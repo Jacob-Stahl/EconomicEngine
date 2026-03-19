@@ -5,22 +5,6 @@ export type SimulationStatus = {
   message: string;
 };
 
-export type SimulationParams = {
-  hungerDelayMean: number;
-  hungerDelayStd: number;
-  maxPrice: number;
-  numConsumers: number;
-  producerPrice: number;
-};
-
-export const DEFAULT_PARAMS: SimulationParams = {
-  hungerDelayMean: 0,
-  hungerDelayStd: 0,
-  maxPrice: 100,
-  numConsumers: 1000,
-  producerPrice: 50,
-};
-
 export const SPREAD_HISTORY_WINDOW = 500;
 
 export type SpreadSnapshot = {
