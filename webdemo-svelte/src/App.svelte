@@ -2,13 +2,18 @@
   import WidgetGrid from './lib/components/WidgetGrid.svelte';
   import type { WidgetFrameModel } from './lib/layout/types';
 
-  const columns = 12;
+  const gridScale = 3;
+  const columns = 12 * gridScale;
   let widgetCount = 4;
 
+  function scaleUnits(value: number) {
+    return value * gridScale;
+  }
+
   let widgets: WidgetFrameModel[] = [
-    { id: 'widget-1', name: 'Spread', x: 0, y: 0, width: 6, height: 2 },
-    { id: 'widget-2', name: 'Depth', x: 6, y: 0, width: 6, height: 2 },
-    { id: 'widget-3', name: 'Orders', x: 0, y: 2, width: 4, height: 2 },
+    { id: 'widget-1', name: 'Spread', x: scaleUnits(0), y: scaleUnits(0), width: scaleUnits(6), height: scaleUnits(2) },
+    { id: 'widget-2', name: 'Depth', x: scaleUnits(6), y: scaleUnits(0), width: scaleUnits(6), height: scaleUnits(2) },
+    { id: 'widget-3', name: 'Orders', x: scaleUnits(0), y: scaleUnits(2), width: scaleUnits(4), height: scaleUnits(2) },
   ];
 
   function overlaps(a: WidgetFrameModel, b: WidgetFrameModel) {
@@ -54,8 +59,8 @@
   }
 
   function addWidget() {
-    const width = 4;
-    const height = 2;
+    const width = scaleUnits(4);
+    const height = scaleUnits(2);
     const position = findOpenPosition(width, height);
 
     widgets = [
