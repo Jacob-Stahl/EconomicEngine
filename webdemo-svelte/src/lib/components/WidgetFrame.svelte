@@ -59,7 +59,12 @@
     grid-template-rows: auto auto 1fr;
     min-height: 100%;
     border: 1px solid rgba(0, 0, 0, 0.35);
+    position: relative;
     user-select: none;
+  }
+
+  .widget-frame.dragging {
+    opacity: 0.65;
   }
 
   .drag-handle {

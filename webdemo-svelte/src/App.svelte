@@ -78,7 +78,7 @@
 </script>
 
 <div class="app-shell">
-  <section class="hero">
+  <section class="toolbar">
     <button type="button" class="add-button" on:click={addWidget}>
       Add widget
     </button>
@@ -98,8 +98,12 @@
     gap: 1rem;
   }
 
-  .hero {
+  .toolbar {
     display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+    padding: 0.25rem 0.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.35);
   }
 
   .widget-body {

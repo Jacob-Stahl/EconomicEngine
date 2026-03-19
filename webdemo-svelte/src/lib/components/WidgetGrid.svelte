@@ -16,6 +16,7 @@
   let activeId: string | null = null;
   let startPointer = { x: 0, y: 0 };
   let startWidget: WidgetFrameModel | null = null;
+  let previewWidget: WidgetFrameModel | null = null;
 
   function clamp(value: number, min: number, max: number) {
     return Math.min(Math.max(value, min), max);
@@ -59,9 +60,11 @@
     activeId = event.detail.id;
     startPointer = { x: event.detail.clientX, y: event.detail.clientY };
     startWidget = widgets.find((widget) => widget.id === activeId) ?? null;
+    previewWidget = startWidget;
 
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', stopDrag);
+    window.addEventListener('pointercancel', stopDrag);
   }
 
   function handlePointerMove(event: PointerEvent) {
@@ -80,21 +83,31 @@
       y: Math.max(0, startWidget.y + deltaY),
     };
 
-    if (!canPlace(candidate)) {
-      return;
-    }
-
-    emitChange(widgets.map((widget) => (widget.id === candidate.id ? candidate : widget)));
+    previewWidget = candidate;
   }
 
   function stopDrag() {
+    if (previewWidget && canPlace(previewWidget)) {
+      const droppedWidget = previewWidget;
+
+      emitChange(widgets.map((widget) => (widget.id === droppedWidget.id ? droppedWidget : widget)));
+    }
+
     activeId = null;
     startWidget = null;
+    previewWidget = null;
     window.removeEventListener('pointermove', handlePointerMove);
     window.removeEventListener('pointerup', stopDrag);
+    window.removeEventListener('pointercancel', stopDrag);
   }
 
   function widgetStyle(widget: WidgetFrameModel) {
+    const zIndex = widget.id === activeId ? 1 : 0;
+
+    return `grid-column: ${widget.x + 1} / span ${widget.width}; grid-row: ${widget.y + 1} / span ${widget.height}; position: relative; z-index: ${zIndex};`;
+  }
+
+  function outlineStyle(widget: WidgetFrameModel) {
     return `grid-column: ${widget.x + 1} / span ${widget.width}; grid-row: ${widget.y + 1} / span ${widget.height};`;
   }
 
@@ -107,6 +120,10 @@
     class="widget-grid"
     style={`--columns: ${columns}; --row-height: ${rowHeight}px; --gap: ${gap}px;`}
   >
+    {#if activeId && previewWidget}
+      <div class="drag-outline" style={outlineStyle(previewWidget)} aria-hidden="true"></div>
+    {/if}
+
     {#each widgets as widget (widget.id)}
       <WidgetFrame
         widget={widget}
@@ -148,5 +165,11 @@
         rgba(0, 0, 0, 0.18) calc(var(--row-height) + var(--gap) - 1px),
         rgba(0, 0, 0, 0.18) calc(var(--row-height) + var(--gap))
       );
+  }
+
+  .drag-outline {
+    border: 2px dashed rgba(0, 0, 0, 0.65);
+    pointer-events: none;
+    z-index: 2;
   }
 </style>
