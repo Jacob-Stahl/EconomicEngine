@@ -244,7 +244,7 @@
     width: 100%;
     min-width: 0;
     overflow: hidden;
-    max-height: 70vh;
+    max-height: 90vh;
     cursor: grab;
     touch-action: none;
   }
