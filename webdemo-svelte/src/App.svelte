@@ -3,7 +3,7 @@
   import type { WidgetFrameModel } from './lib/layout/types';
 
   const gridScale = 3;
-  const columns = 12 * gridScale;
+  const columns = 24 * gridScale;
   let widgetCount = 4;
 
   function scaleUnits(value: number) {
