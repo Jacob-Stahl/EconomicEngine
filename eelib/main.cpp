@@ -331,8 +331,9 @@ void tinkerWithABM(){
 
     Recipe refineOil({{"OIL", 4}}, {{"FUEL", 1}, {"FERTILIZER", 1}, {"PLASTIC", 2}}, 10);
     Recipe growFood({{"FERTILIZER", 1}, {"FUEL", 1}}, {{"FOOD", 10}}, 5);
-    Recipe smeltSteel({{"COAL", 5}, {"ENERGY", 10}, {"IRON_ORE", 5}}, {{"STEEL", 4}}, 5);
+    Recipe smeltSteel({{"COAL", 5}, {"ENERGY", 100}, {"IRON_ORE", 5}}, {{"STEEL", 4}}, 5);
     Recipe coalToEnergy({{"COAL", 5}}, {{"ENERGY", 50}}, 5);
+    Recipe makeGoods({{"STEEL", 2}, {"PLASTIC", 5}}, {{"ENERGY", 10}, {"GOODS", 5}});
 
     auto driller = ProducerManager(abm, "Driller", "OIL");
     driller.changeNumAgents(1);
@@ -358,11 +359,15 @@ void tinkerWithABM(){
     steelFoundery.changeNumAgents(20);
     steelFoundery.numAgentsFixed = true;
 
+    auto factory = ManufacturerManager(abm, "Factory", makeGoods);
+    factory.changeNumAgents(20);
+    factory.numAgentsFixed = true;
+
     auto farm = ManufacturerManager(abm, "Farm", growFood);
     farm.changeNumAgents(20);
     farm.numAgentsFixed = true;
 
-    std::vector<std::string> assetsToConsume{"FUEL", "FOOD", "STEEL", "PLASTIC"};
+    std::vector<std::string> assetsToConsume{"FUEL", "FOOD", "GOODS", "ENERGY"};
     std::vector<std::unique_ptr<ConsumerManager>> consumerManagers{};
 
     for(auto asset : assetsToConsume){
