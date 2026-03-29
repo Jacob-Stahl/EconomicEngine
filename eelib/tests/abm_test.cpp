@@ -621,6 +621,15 @@ public:
     }
 };
 
+static Order makeTestOrder(
+    const std::string& asset,
+    Side side,
+    OrdType type,
+    unsigned short price,
+    unsigned int qty) {
+    return Order(asset, side, type, price, qty);
+}
+
 TEST_F(ABMTest, AgentReceivesCorrectTickOnEvents) {
     auto agentPtr = std::make_unique<TickSpyAgent>(0);
     TickSpyAgent* agent = agentPtr.get();
@@ -654,6 +663,71 @@ TEST_F(ABMTest, AgentReceivesCorrectTickOnEvents) {
 
     EXPECT_TRUE(agent->orderPlacedCalled);
     EXPECT_EQ(agent->lastOrderPlacedTick.raw(), 2);
+}
+
+TEST_F(ABMTest, AssetVolumesPerTickAggregatesMatchedQuantityByAsset) {
+    auto foodSellerOne = std::make_unique<TickSpyAgent>(0);
+    auto foodSellerTwo = std::make_unique<TickSpyAgent>(0);
+    auto foodBuyerOne = std::make_unique<TickSpyAgent>(0);
+    auto foodBuyerTwo = std::make_unique<TickSpyAgent>(0);
+    auto waterSeller = std::make_unique<TickSpyAgent>(0);
+    auto waterBuyer = std::make_unique<TickSpyAgent>(0);
+
+    TickSpyAgent* foodSellerOnePtr = foodSellerOne.get();
+    TickSpyAgent* foodSellerTwoPtr = foodSellerTwo.get();
+    TickSpyAgent* foodBuyerOnePtr = foodBuyerOne.get();
+    TickSpyAgent* foodBuyerTwoPtr = foodBuyerTwo.get();
+    TickSpyAgent* waterSellerPtr = waterSeller.get();
+    TickSpyAgent* waterBuyerPtr = waterBuyer.get();
+
+    abm.addAgent(std::move(foodBuyerOne));
+    abm.addAgent(std::move(foodBuyerTwo));
+    abm.addAgent(std::move(foodSellerOne));
+    abm.addAgent(std::move(foodSellerTwo));
+    abm.addAgent(std::move(waterBuyer));
+    abm.addAgent(std::move(waterSeller));
+
+    foodBuyerOnePtr->nextAction = Action(makeTestOrder("FOOD", BUY, LIMIT, 100, 1));
+    foodBuyerTwoPtr->nextAction = Action(makeTestOrder("FOOD", BUY, LIMIT, 100, 1));
+    foodSellerOnePtr->nextAction = Action(makeTestOrder("FOOD", SELL, MARKET, 0, 1));
+    foodSellerTwoPtr->nextAction = Action(makeTestOrder("FOOD", SELL, MARKET, 0, 1));
+    waterBuyerPtr->nextAction = Action(makeTestOrder("WATER", BUY, LIMIT, 100, 3));
+    waterSellerPtr->nextAction = Action(makeTestOrder("WATER", SELL, MARKET, 0, 3));
+
+    abm.simStep();
+
+    const auto& obs = abm.getLatestObservation();
+    ASSERT_EQ(obs.time, tick(1));
+    ASSERT_EQ(obs.assetVolumesPerTick.size(), 2u);
+    EXPECT_EQ(obs.assetVolumesPerTick.at("FOOD"), 2u);
+    EXPECT_EQ(obs.assetVolumesPerTick.at("WATER"), 3u);
+}
+
+TEST_F(ABMTest, AssetVolumesPerTickClearsOnNextTickWithoutMatches) {
+    auto seller = std::make_unique<TickSpyAgent>(0);
+    auto buyer = std::make_unique<TickSpyAgent>(0);
+
+    TickSpyAgent* sellerPtr = seller.get();
+    TickSpyAgent* buyerPtr = buyer.get();
+
+    abm.addAgent(std::move(seller));
+    abm.addAgent(std::move(buyer));
+
+    buyerPtr->nextAction = Action(makeTestOrder("FOOD", BUY, LIMIT, 100, 2));
+    sellerPtr->nextAction = Action(makeTestOrder("FOOD", SELL, MARKET, 0, 2));
+
+    abm.simStep();
+
+    const auto& firstObs = abm.getLatestObservation();
+    ASSERT_EQ(firstObs.assetVolumesPerTick.at("FOOD"), 2u);
+
+    sellerPtr->nextAction = Action();
+    buyerPtr->nextAction = Action();
+
+    abm.simStep();
+
+    const auto& secondObs = abm.getLatestObservation();
+    EXPECT_TRUE(secondObs.assetVolumesPerTick.empty());
 }
 
 TEST_F(ABMTest, AgentReceivesCorrectTickOnMatch) {

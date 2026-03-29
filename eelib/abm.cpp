@@ -196,7 +196,7 @@ void ABM::removeTickCallback(TickCallback* callback){
 void ABM::updateAssetVolumePerTick(std::string asset, unsigned long change){
     auto& volumes = latestObservation.assetVolumesPerTick;
     if(volumes.find(asset) == volumes.end()){
-        volumes.at(asset) = change;
+        volumes[asset] = change;
     }
     else{
         volumes.at(asset) += change;
