@@ -173,6 +173,7 @@ void benchmarkMatcher(){
 void showObservations(const Observation& observations){
     constexpr int assetWidth = 16;
     constexpr int priceWidth = 10;
+    constexpr int volumeWidth = 10;
 
     auto printPrice = [](bool missing, unsigned short price) {
         if (missing) {
@@ -190,9 +191,10 @@ void showObservations(const Observation& observations){
               << std::setw(priceWidth) << "Bid"
               << std::setw(priceWidth) << "Ask"
               << std::setw(priceWidth) << "Spread"
+              << std::setw(volumeWidth) << "Volume"
               << "Market"
               << "\n";
-    std::cout << std::string(assetWidth + (priceWidth * 3) + 6, '-') << "\n";
+    std::cout << std::string(assetWidth + (priceWidth * 3) + volumeWidth + 6, '-') << "\n";
 
     if (observations.assetSpreads.empty()) {
         std::cout << "No spreads available.\n";
@@ -201,6 +203,11 @@ void showObservations(const Observation& observations){
     }
 
     for (const auto& [asset, spread] : observations.assetSpreads) {
+        auto volumeIt = observations.assetVolumesPerTick.find(asset);
+        unsigned long volume = volumeIt == observations.assetVolumesPerTick.end()
+            ? 0
+            : volumeIt->second;
+
         std::cout << std::left << std::setw(assetWidth) << asset;
         std::cout << std::right;
         printPrice(spread.bidsMissing, spread.highestBid);
@@ -212,6 +219,8 @@ void showObservations(const Observation& observations){
             std::cout << std::setw(priceWidth)
                       << (spread.lowestAsk - spread.highestBid);
         }
+
+        std::cout << std::setw(volumeWidth) << volume;
 
         std::cout << "  ";
         if (spread.bidsMissing && spread.asksMissing) {
