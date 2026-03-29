@@ -111,8 +111,6 @@ class ManufacturerManager : public AgentManager{
         void changeNumAgents(unsigned int numAgents);
         
 
-        // TODO How do we incorperate this into the game loop? Ideally the ABM doesn't know about these managers...
-
         /// @brief Find the new number of agents. 
         /// @return 
         unsigned int newNumAgents();
