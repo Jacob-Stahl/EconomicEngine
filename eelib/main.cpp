@@ -1,12 +1,18 @@
 #include <iostream>
-#include "order.h"
-#include "matcher.h"
 #include <random>
 #include <chrono>
 #include <unordered_map>
 #include <type_traits>
+#include <string>
+
+#include "order.h"
+#include "matcher.h"
+#include "agent.h"
+#include "abm.h"
+#include "agent_manager.h"
 
 void benchmarkMatcher();
+void tinkerWithABM();
 
 int main() {
     benchmarkMatcher();
@@ -105,7 +111,6 @@ class OrderFactory{
         }
 };
     
-
 void benchmarkMatcher(){
 
     InMemoryNotifier notifier;
@@ -160,5 +165,19 @@ void benchmarkMatcher(){
     std::cout << "Done!" << std::endl;
     std::cout << "Matches Found: " << notifier.matches.size() << std::endl;
     std::cout << "Orders Rejected: " << notifier.placementFailedOrders.size() << std::endl;
+
+};
+
+void tinkerWithABM(){
+    auto abm = std::make_shared<ABM>();
+    std::vector<std::unique_ptr<AgentManager>> agentManagers{};
+
+    agentManagers.push_back(
+        std::move(std::make_unique<AgentManager>(ProducerManager(
+            abm,
+            "OIL Producer",
+            "OIL"
+        )))
+    );
 
 };
