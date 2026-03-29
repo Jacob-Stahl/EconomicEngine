@@ -330,9 +330,9 @@ void tinkerWithABM(){
     auto abm = std::make_shared<ABM>();
 
     Recipe refineOil({{"OIL", 4}}, {{"FUEL", 1}, {"FERTILIZER", 1}, {"PLASTIC", 2}}, 10);
-    Recipe growFood({{"FERTILIZER", 1}, {"FUEL", 1}}, {{"FOOD", 10}});
-    Recipe smeltSteel({{"COAL", 5}, {"ENERGY", 10}, {"IRON_ORE", 5}}, {{"STEEL", 4}});
-    Recipe coalToEnergy({{"COAL", 5}}, {{"ENERGY", 50}});
+    Recipe growFood({{"FERTILIZER", 1}, {"FUEL", 1}}, {{"FOOD", 10}}, 5);
+    Recipe smeltSteel({{"COAL", 5}, {"ENERGY", 10}, {"IRON_ORE", 5}}, {{"STEEL", 4}}, 5);
+    Recipe coalToEnergy({{"COAL", 5}}, {{"ENERGY", 50}}, 5);
 
     auto driller = ProducerManager(abm, "Driller", "OIL");
     driller.changeNumAgents(1);
@@ -340,11 +340,11 @@ void tinkerWithABM(){
 
     auto coalMiner = ProducerManager(abm, "Coal Miner", "COAL");
     coalMiner.changeNumAgents(1);
-    coalMiner.changePreferedPrice(50, 0);
+    coalMiner.changePreferedPrice(10, 0);
 
     auto ironMiner = ProducerManager(abm, "Iron Miner", "IRON_ORE");
     ironMiner.changeNumAgents(1);
-    ironMiner.changePreferedPrice(50, 0);
+    ironMiner.changePreferedPrice(20, 0);
 
     auto powerPlant = ManufacturerManager(abm, "Coal Power Plant", coalToEnergy);
     powerPlant.changeNumAgents(20);
