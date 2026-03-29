@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <random>
 #include <chrono>
+#include <memory>
 #include <unordered_map>
 #include <type_traits>
 #include <string>
@@ -328,23 +329,52 @@ void tinkerWithABM(){
     int numSteps = 10000;
     auto abm = std::make_shared<ABM>();
 
-    Recipe refineOil({{"OIL", 2}}, {{"FUEL", 1}}, 10);
+    Recipe refineOil({{"OIL", 4}}, {{"FUEL", 1}, {"FERTILIZER", 1}, {"PLASTIC", 2}}, 10);
+    Recipe growFood({{"FERTILIZER", 1}, {"FUEL", 1}}, {{"FOOD", 10}});
+    Recipe smeltSteel({{"COAL", 5}, {"ENERGY", 10}, {"IRON_ORE", 5}}, {{"STEEL", 4}});
+    Recipe coalToEnergy({{"COAL", 5}}, {{"ENERGY", 50}});
 
-    auto driller = ProducerManager(abm, "OIL Producer", "OIL");
+    auto driller = ProducerManager(abm, "Driller", "OIL");
     driller.changeNumAgents(1);
     driller.changePreferedPrice(50, 0);
-    auto refinery = ManufacturerManager(abm, "Refinery", refineOil);
-    refinery.neutralAge = tick(10);
-    refinery.staleAge = tick(100);
-    refinery.changeNumAgents(20);
-    refinery.numAgentsScaleFactor = 0.05;
-    refinery.numAgentsFixed = true;
-    
-    auto consumers = ConsumerManager(abm, "FUEL Consumers", "FUEL");
-    consumers.changeNumAgents(1000);
-    consumers.changeHungerDelay(100, 40);
-    consumers.changeMaxPrice(20000, 0);
 
+    auto coalMiner = ProducerManager(abm, "Coal Miner", "COAL");
+    coalMiner.changeNumAgents(1);
+    coalMiner.changePreferedPrice(50, 0);
+
+    auto ironMiner = ProducerManager(abm, "Iron Miner", "IRON_ORE");
+    ironMiner.changeNumAgents(1);
+    ironMiner.changePreferedPrice(50, 0);
+
+    auto powerPlant = ManufacturerManager(abm, "Coal Power Plant", coalToEnergy);
+    powerPlant.changeNumAgents(20);
+    powerPlant.numAgentsFixed = true;
+
+    auto refinery = ManufacturerManager(abm, "Refinery", refineOil);
+    refinery.changeNumAgents(20);
+    refinery.numAgentsFixed = true;
+
+    auto steelFoundery = ManufacturerManager(abm, "Steel Foundery", smeltSteel);
+    steelFoundery.changeNumAgents(20);
+    steelFoundery.numAgentsFixed = true;
+
+    auto farm = ManufacturerManager(abm, "Farm", growFood);
+    farm.changeNumAgents(20);
+    farm.numAgentsFixed = true;
+
+    std::vector<std::string> assetsToConsume{"FUEL", "FOOD", "STEEL", "PLASTIC"};
+    std::vector<std::unique_ptr<ConsumerManager>> consumerManagers{};
+
+    for(auto asset : assetsToConsume){
+        auto consumers = std::make_unique<ConsumerManager>(
+            abm,
+            asset + " Consumer",
+            asset);
+        consumers->changeNumAgents(1000);
+        consumers->changeHungerDelay(100, 40);
+        consumers->changeMaxPrice(20000, 0);
+        consumerManagers.push_back(std::move(consumers));
+    }
     
     // Show ABM initial state
     std::cout << "Num Agents: " << abm->getNumAgents() << std::endl;
