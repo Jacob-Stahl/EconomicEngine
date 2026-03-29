@@ -328,7 +328,7 @@ void tinkerWithABM(){
     int numSteps = 10000;
     auto abm = std::make_shared<ABM>();
 
-    Recipe refineOil({{"OIL", 1}}, {{"FUEL", 1}}, 0);
+    Recipe refineOil({{"OIL", 2}}, {{"FUEL", 1}}, 10);
 
     auto driller = ProducerManager(abm, "OIL Producer", "OIL");
     driller.changeNumAgents(1);
@@ -336,14 +336,14 @@ void tinkerWithABM(){
     auto refinery = ManufacturerManager(abm, "Refinery", refineOil);
     refinery.neutralAge = tick(10);
     refinery.staleAge = tick(100);
-    refinery.changeNumAgents(100);
+    refinery.changeNumAgents(20);
     refinery.numAgentsScaleFactor = 0.05;
     refinery.numAgentsFixed = true;
     
     auto consumers = ConsumerManager(abm, "FUEL Consumers", "FUEL");
-    consumers.changeNumAgents(10);
-    consumers.changeHungerDelay(0, 0);
-    consumers.changeMaxPrice(200, 0);
+    consumers.changeNumAgents(1000);
+    consumers.changeHungerDelay(100, 40);
+    consumers.changeMaxPrice(20000, 0);
 
     
     // Show ABM initial state

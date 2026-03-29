@@ -274,6 +274,10 @@ std::vector<Order> Manufacturer::sellOrders() {
 }
 
 Action Manufacturer::policy(const Observation& observation){
+
+    // ensure inventory traderId is consistant with state traderId
+    state->inventory.traderId = traderId;
+    
     long prodCost = costOfProd(state->recipe, observation);
     long expectedSaleRevenue = saleRevenue(state->recipe, observation);
     std::vector<Order> orders;

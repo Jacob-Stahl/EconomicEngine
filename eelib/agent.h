@@ -152,12 +152,12 @@ struct Recipe {
 };
 
 class Inventory {
-    long traderId;
     std::map<std::string, long> assets{};
     long cashBalance = 0;
 
     public:
         Inventory(long traderId_) : traderId(traderId_){};
+        long traderId;
         void update(const Match& match);
         void update(const std::string& asset, int qtyChange, long cashChange);
 
