@@ -6,6 +6,7 @@
 #include <functional>
 #include <map>
 #include "tick.h"
+#include <initializer_list>
 #include <memory>
 #include <vector>
 
@@ -131,6 +132,17 @@ struct Recipe {
 
     // Could be negative, if the recipe produces money...
     long cost = 0;
+
+    Recipe() = default;
+
+    Recipe(
+        std::initializer_list<std::pair<const std::string, int>> inputs_,
+        std::initializer_list<std::pair<const std::string, int>> outputs_,
+        long cost_ = 0)
+        : inputs(inputs_),
+          outputs(outputs_),
+          cost(cost_)
+    {}
 };
 
 class Inventory {

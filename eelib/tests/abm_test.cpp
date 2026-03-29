@@ -263,6 +263,15 @@ TEST(ManufacturerManagerTest, TickCallbackCanShrinkManufacturerCount) {
     EXPECT_EQ(abm->getNumAgents(), 0u);
 }
 
+TEST(RecipeTest, ConstructorAcceptsReadableBraceInitialization) {
+    Recipe recipe({{"OIL", 2}, {"LABOR", 1}}, {{"FUEL", 1}}, 15);
+
+    EXPECT_EQ(recipe.inputs.at("OIL"), 2);
+    EXPECT_EQ(recipe.inputs.at("LABOR"), 1);
+    EXPECT_EQ(recipe.outputs.at("FUEL"), 1);
+    EXPECT_EQ(recipe.cost, 15);
+}
+
 TEST(ConsumerManagerTest, StateChangesPropagateToManagedConsumersInABM) {
     auto abm = std::make_shared<ABM>();
     ConsumerManager manager(abm, "consumers", "FOOD");

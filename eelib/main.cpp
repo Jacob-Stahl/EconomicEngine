@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <random>
 #include <chrono>
 #include <unordered_map>
@@ -15,7 +16,7 @@ void benchmarkMatcher();
 void tinkerWithABM();
 
 int main() {
-    benchmarkMatcher();
+    tinkerWithABM();
 }
 
 
@@ -168,16 +169,93 @@ void benchmarkMatcher(){
 
 };
 
+
+void showObservations(const Observation& observations){
+    constexpr int assetWidth = 16;
+    constexpr int priceWidth = 10;
+
+    auto printPrice = [](bool missing, unsigned short price) {
+        if (missing) {
+            std::cout << std::setw(priceWidth) << "-";
+            return;
+        }
+
+        std::cout << std::setw(priceWidth) << price;
+    };
+
+    std::cout << "\x1B[2J\x1B[H";
+    std::cout << "Tick: " << observations.time << "\n\n";
+    std::cout << std::left
+              << std::setw(assetWidth) << "Asset"
+              << std::setw(priceWidth) << "Bid"
+              << std::setw(priceWidth) << "Ask"
+              << std::setw(priceWidth) << "Spread"
+              << "Market"
+              << "\n";
+    std::cout << std::string(assetWidth + (priceWidth * 3) + 6, '-') << "\n";
+
+    if (observations.assetSpreads.empty()) {
+        std::cout << "No spreads available.\n";
+        std::cout.flush();
+        return;
+    }
+
+    for (const auto& [asset, spread] : observations.assetSpreads) {
+        std::cout << std::left << std::setw(assetWidth) << asset;
+        std::cout << std::right;
+        printPrice(spread.bidsMissing, spread.highestBid);
+        printPrice(spread.asksMissing, spread.lowestAsk);
+
+        if (spread.bidsMissing || spread.asksMissing) {
+            std::cout << std::setw(priceWidth) << "-";
+        } else {
+            std::cout << std::setw(priceWidth)
+                      << (spread.lowestAsk - spread.highestBid);
+        }
+
+        std::cout << "  ";
+        if (spread.bidsMissing && spread.asksMissing) {
+            std::cout << "No bids or asks";
+        } else if (spread.bidsMissing) {
+            std::cout << "No bids";
+        } else if (spread.asksMissing) {
+            std::cout << "No asks";
+        } else {
+            std::cout << "Two-sided";
+        }
+
+        std::cout << "\n";
+    }
+
+    std::cout.flush();
+}
+
 void tinkerWithABM(){
+
+    // Setup
+    int numSteps = 10000;
     auto abm = std::make_shared<ABM>();
-    std::vector<std::unique_ptr<AgentManager>> agentManagers{};
 
-    agentManagers.push_back(
-        std::move(std::make_unique<AgentManager>(ProducerManager(
-            abm,
-            "OIL Producer",
-            "OIL"
-        )))
-    );
+    Recipe refineOil({{"OIL", 2}}, {{"FUEL", 1}}, 5);
 
+    auto driller = ProducerManager(abm, "OIL Producer", "OIL");
+    driller.changeNumAgents(1);
+    driller.changePreferedPrice(50, 0);
+    auto refinery = ManufacturerManager(abm, "Refinery", refineOil);
+    refinery.changeNumAgents(1);
+    
+    auto consumers = ConsumerManager(abm, "FUEL Consumers", "FUEL");
+    consumers.changeNumAgents(10000);
+    consumers.changeHungerDelay(100, 40);
+    consumers.changeMaxPrice(100, 100);
+
+    
+    // Show ABM initial state
+    std::cout << "Num Agents: " << abm->getNumAgents() << std::endl;
+
+    // Run
+    for(int i = 0; i < numSteps; i++){
+        abm->simStep();
+        showObservations(abm->getLatestObservation());
+    }
 };
