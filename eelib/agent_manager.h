@@ -109,6 +109,14 @@ class ManufacturerManager : public AgentManager{
         std::unique_ptr<Agent> factory() override;
         
         void changeNumAgents(unsigned int numAgents);
+
+        const std::vector<std::shared_ptr<ManufacturerState>>& getStates() const {
+            return states;
+        }
+
+        const Recipe& getRecipe() const {
+            return recipe;
+        }
         
 
         /// @brief Find the new number of agents. 

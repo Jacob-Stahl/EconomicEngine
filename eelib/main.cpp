@@ -230,6 +230,89 @@ void showObservations(const Observation& observations){
     std::cout.flush();
 }
 
+void showManufacturerManagerState(const ManufacturerManager& manager){
+    constexpr int agentWidth = 8;
+    constexpr int ageWidth = 8;
+    constexpr int cashWidth = 10;
+    constexpr int assetWidth = 12;
+
+    const auto& states = manager.getStates();
+    const auto& recipe = manager.getRecipe();
+
+    std::vector<std::string> trackedAssets;
+    trackedAssets.reserve(recipe.inputs.size() + recipe.outputs.size());
+
+    for (const auto& [asset, qty] : recipe.inputs) {
+        (void)qty;
+        trackedAssets.push_back(asset);
+    }
+
+    for (const auto& [asset, qty] : recipe.outputs) {
+        (void)qty;
+        if (std::find(trackedAssets.begin(), trackedAssets.end(), asset) == trackedAssets.end()) {
+            trackedAssets.push_back(asset);
+        }
+    }
+
+    std::cout << "\nRefinery: " << manager.name << "\n\n";
+    std::cout << std::left
+              << std::setw(agentWidth) << "Agent"
+              << std::setw(ageWidth) << "Age"
+              << std::setw(cashWidth) << "Cash";
+
+    for (const auto& asset : trackedAssets) {
+        std::cout << std::setw(assetWidth) << asset;
+    }
+    std::cout << "\n";
+
+    std::cout << std::string(
+        agentWidth + ageWidth + cashWidth + static_cast<int>(trackedAssets.size()) * assetWidth,
+        '-') << "\n";
+
+    if (states.empty()) {
+        std::cout << "No refinery agents.\n";
+        return;
+    }
+
+    for (size_t index = 0; index < states.size(); ++index) {
+        const auto& state = states[index];
+        std::cout << std::left
+                  << std::setw(agentWidth) << index
+                  << std::setw(ageWidth) << state->timeSinceLastSale
+                  << std::setw(cashWidth) << state->inventory.cash();
+
+        for (const auto& asset : trackedAssets) {
+            std::cout << std::setw(assetWidth) << state->inventory.qty(asset);
+        }
+
+        std::cout << "\n";
+    }
+
+    std::cout << "\nRecipe: ";
+    bool firstTerm = true;
+
+    for (const auto& [asset, qty] : recipe.inputs) {
+        if (!firstTerm) {
+            std::cout << " + ";
+        }
+        std::cout << qty << ' ' << asset;
+        firstTerm = false;
+    }
+
+    std::cout << " -> ";
+    firstTerm = true;
+
+    for (const auto& [asset, qty] : recipe.outputs) {
+        if (!firstTerm) {
+            std::cout << " + ";
+        }
+        std::cout << qty << ' ' << asset;
+        firstTerm = false;
+    }
+
+    std::cout << " | Cost: " << recipe.cost << "\n";
+}
+
 void tinkerWithABM(){
 
     // Setup
@@ -242,12 +325,15 @@ void tinkerWithABM(){
     driller.changeNumAgents(1);
     driller.changePreferedPrice(50, 0);
     auto refinery = ManufacturerManager(abm, "Refinery", refineOil);
-    refinery.changeNumAgents(1);
+    refinery.neutralAge = tick(10);
+    refinery.staleAge = tick(100);
+    refinery.changeNumAgents(10000);
+    refinery.numAgentsFixed = true;
     
     auto consumers = ConsumerManager(abm, "FUEL Consumers", "FUEL");
-    consumers.changeNumAgents(10000);
+    consumers.changeNumAgents(1000);
     consumers.changeHungerDelay(100, 40);
-    consumers.changeMaxPrice(100, 100);
+    consumers.changeMaxPrice(200, 0);
 
     
     // Show ABM initial state
@@ -257,5 +343,6 @@ void tinkerWithABM(){
     for(int i = 0; i < numSteps; i++){
         abm->simStep();
         showObservations(abm->getLatestObservation());
+        //showManufacturerManagerState(refinery);
     }
 };
