@@ -9,9 +9,10 @@
 
 class TickCallback{
     public:
+        virtual ~TickCallback() = default;
+
         /// @brief Called after the end of every tick
-    virtual ~TickCallback() = default;
-    virtual void callBackAction() = 0;
+        virtual void callBackAction() = 0;
 };
 
 /// @brief Agent Based Model. Framework for multi agent trading simulations.
