@@ -39,6 +39,8 @@ class ABM{
     void observe();
     void removeAgents(const std::vector<size_t>& agentsToRemove);
     void runTickCallbacks();
+    void clearAssetVolumePerTick();
+    void updateAssetVolumePerTick(std::string asset, unsigned long change);
 
     public:
         TickCallback* addTickCallback(std::unique_ptr<TickCallback> callback);

@@ -2,10 +2,11 @@
 
 #include "matcher.h"
 #include "match.h"
+#include "tick.h"
+
 #include <string>
 #include <functional>
 #include <map>
-#include "tick.h"
 #include <initializer_list>
 #include <memory>
 #include <vector>
@@ -15,7 +16,12 @@ struct Observation{
 
     /// @brief asset - Spread
     std::map<std::string, Spread> assetSpreads;
+
+    /// @brief asset - Depth
     std::map<std::string, Depth> assetOrderDepths;
+
+    // @brief asset - Volume per tick
+    std::map<std::string, unsigned long> assetVolumesPerTick;
 };
 
 struct Action{

@@ -39,6 +39,9 @@ void ABM::routeMatches(std::vector<Match>& matches){
         if (agentIdx < agents.size() && agents[agentIdx]->traderId == match.buyer.traderId) {
             agents[agentIdx]->matchFound(match, tickCounter);
         }
+
+        // While we are at it, update volume per tick
+        updateAssetVolumePerTick(match.buyer.asset, match.qty);
     }
 
     // Sort by sellers.
@@ -75,6 +78,7 @@ void ABM::cleanupCanceledOrdersWithAllMatchers(){
 void ABM::simStep(){
     // update latest observation
     observe();
+    clearAssetVolumePerTick();
 
     // Execute actions for all agents
     for(auto& agent: agents){
@@ -187,4 +191,18 @@ void ABM::removeTickCallback(TickCallback* callback){
                 return candidate.get() == callback;
             }),
         tickCallbacks.end());
+}
+
+void ABM::updateAssetVolumePerTick(std::string asset, unsigned long change){
+    auto& volumes = latestObservation.assetVolumesPerTick;
+    if(volumes.find(asset) == volumes.end()){
+        volumes.at(asset) = change;
+    }
+    else{
+        volumes.at(asset) += change;
+    }
+}
+
+void ABM::clearAssetVolumePerTick(){
+    latestObservation.assetVolumesPerTick = {};
 }
