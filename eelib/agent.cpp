@@ -101,24 +101,31 @@ Action Producer::policy(const Observation& observation) {
 }
 
 // Manufacturer Implementation
-void Inventory::update(const Match& match){
-    if(match.buyer.traderId == traderId){
+void Inventory::update(const Match& match, long thisTraderId){
+    if(match.buyer.traderId == thisTraderId){
         auto asset = match.buyer.asset;
         update(asset, 
             (match.qty), 
-            match.buyer.price * match.qty
+            match.buyer.price * match.qty,
+            thisTraderId
         );
     }
-    if(match.seller.traderId == traderId){
+    if(match.seller.traderId == thisTraderId){
         auto asset = match.seller.asset;
         update(asset, 
             -(match.qty),
-            -match.seller.price * match.qty
+            -match.seller.price * match.qty,
+            thisTraderId
         );
     }
 };
 
-void Inventory::update(const std::string& asset, int qtyChange, long cashChange){
+void Inventory::update(
+    const std::string& asset,
+    int qtyChange,
+    long cashChange,
+    long thisTraderId){
+    (void)thisTraderId;
     if(assets.find(asset) == assets.end()){
         assets.emplace(asset, qtyChange);
     }
@@ -131,9 +138,7 @@ void Inventory::update(const std::string& asset, int qtyChange, long cashChange)
 
 Manufacturer::Manufacturer(long traderId_, std::shared_ptr<ManufacturerState> state_)
     : Agent(traderId_), state(std::move(state_))
-{
-    state->inventory = Inventory(traderId_);
-}
+{}
 
 long Manufacturer::costOfProd(
     const Recipe& recipe,
@@ -238,14 +243,14 @@ void Manufacturer::craft() {
         if (requiredQty <= 0) {
             continue;
         }
-        state->inventory.update(asset, -requiredQty * craftCount, 0);
+        state->inventory.update(asset, -requiredQty * craftCount, 0, traderId);
     }
 
     for (const auto& [asset, producedQty] : state->recipe.outputs) {
         if (producedQty <= 0) {
             continue;
         }
-        state->inventory.update(asset, producedQty * craftCount, 0);
+        state->inventory.update(asset, producedQty * craftCount, 0, traderId);
     }
 }
 
@@ -274,10 +279,6 @@ std::vector<Order> Manufacturer::sellOrders() {
 }
 
 Action Manufacturer::policy(const Observation& observation){
-
-    // ensure inventory traderId is consistant with state traderId
-    state->inventory.traderId = traderId;
-    
     long prodCost = costOfProd(state->recipe, observation);
     long expectedSaleRevenue = saleRevenue(state->recipe, observation);
     std::vector<Order> orders;
@@ -304,7 +305,7 @@ void Manufacturer::matchFound(const Match& match, const tick now) {
     if(match.seller.traderId == traderId){
         state->timeSinceLastSale = tick(0);
     }
-    state->inventory.update(match);
+    state->inventory.update(match, traderId);
 }
 
 void Manufacturer::orderCanceled(long orderId, const tick now) {

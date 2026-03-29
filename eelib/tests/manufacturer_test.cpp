@@ -3,8 +3,9 @@
 #include "../agent.h"
 
 static std::shared_ptr<ManufacturerState> makeManufacturerState(long traderId) {
+    (void)traderId;
     return std::shared_ptr<ManufacturerState>(
-        new ManufacturerState{Recipe(), Inventory(traderId), tick(0), {}});
+        new ManufacturerState{Recipe(), Inventory(), tick(0), {}});
 }
 
 TEST(ManufacturerTest, PolicyPlacesProcurementOrdersWhenProductionIsProfitable) {
@@ -39,7 +40,7 @@ TEST(ManufacturerTest, PolicyCraftsInventoryAndPlacesSellOrdersForOutputs) {
     state->recipe = Recipe({{"ORE", 2}}, {{"METAL", 1}}, 100);
 
     Manufacturer manufacturer(1, state);
-    state->inventory.update("ORE", 4, 0);
+    state->inventory.update("ORE", 4, 0, manufacturer.traderId);
 
     Observation observation;
     observation.assetSpreads["METAL"] = Spread{false, true, 1, 0};

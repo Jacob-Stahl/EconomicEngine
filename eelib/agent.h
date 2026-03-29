@@ -156,10 +156,13 @@ class Inventory {
     long cashBalance = 0;
 
     public:
-        Inventory(long traderId_) : traderId(traderId_){};
-        long traderId;
-        void update(const Match& match);
-        void update(const std::string& asset, int qtyChange, long cashChange);
+        Inventory() = default;
+        void update(const Match& match, long thisTraderId);
+        void update(
+            const std::string& asset,
+            int qtyChange,
+            long cashChange,
+            long thisTraderId);
 
         int qty(const std::string& asset) const {
             auto it = assets.find(asset);
@@ -173,7 +176,7 @@ class Inventory {
 
 struct ManufacturerState {
     Recipe recipe;
-    Inventory inventory;
+    Inventory inventory{};
     tick timeSinceLastSale = tick(0);
 
     // Asset - OrderId

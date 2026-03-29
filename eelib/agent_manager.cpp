@@ -188,7 +188,7 @@ ManufacturerManager::~ManufacturerManager() {
 std::unique_ptr<Agent> ManufacturerManager::factory(){
     auto state = std::make_shared<ManufacturerState>(ManufacturerState{
         recipe,
-        Inventory(0),
+        Inventory(),
         neutralAge, // initialize agents to a neutral age
         {}
     });
