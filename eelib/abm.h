@@ -15,9 +15,15 @@ class TickCallback{
         virtual void callBackAction() = 0;
 };
 
+struct TickStats{
+    unsigned int ordersPlaced = 0;
+    unsigned int ordersCanceled = 0;
+};
+
 /// @brief Agent Based Model. Framework for multi agent trading simulations.
 class ABM{
 
+    TickStats tickStats;
     const int cleanupCancelledEvery = 16;
 
     // Agents
@@ -53,6 +59,7 @@ class ABM{
         
         size_t getNumAgents() const { return agents.size(); }
         const Observation& getLatestObservation() {return latestObservation; };
+        const TickStats& getTickStats() {return tickStats; };
 
     private:
         std::vector<std::unique_ptr<TickCallback>> tickCallbacks{};

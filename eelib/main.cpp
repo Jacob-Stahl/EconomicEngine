@@ -171,7 +171,7 @@ void benchmarkMatcher(){
 };
 
 
-void showObservations(const Observation& observations){
+void showObservationsAndStats(const Observation& observations, const TickStats& tickStats){
     constexpr int assetWidth = 16;
     constexpr int priceWidth = 10;
     constexpr int volumeWidth = 10;
@@ -186,7 +186,10 @@ void showObservations(const Observation& observations){
     };
 
     std::cout << "\x1B[2J\x1B[H";
-    std::cout << "Tick: " << observations.time << "\n\n";
+    std::cout << "Tick: " << observations.time
+              << " | Orders placed: " << tickStats.ordersPlaced
+              << " | Orders canceled: " << tickStats.ordersCanceled
+              << "\n\n";
     std::cout << std::left
               << std::setw(assetWidth) << "Asset"
               << std::setw(priceWidth) << "Bid"
@@ -387,7 +390,7 @@ void tinkerWithABM(){
     // Run
     for(int i = 0; i < numSteps; i++){
         abm->simStep();
-        showObservations(abm->getLatestObservation());
+        showObservationsAndStats(abm->getLatestObservation(), abm->getTickStats());
         //showManufacturerManagerState(refinery);
     }
 };

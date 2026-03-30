@@ -78,6 +78,7 @@ void ABM::cleanupCanceledOrdersWithAllMatchers(){
 void ABM::simStep(){
     // update latest observation
     observe();
+    tickStats = {};
     clearAssetVolumePerTick();
 
     // Execute actions for all agents
@@ -87,6 +88,7 @@ void ABM::simStep(){
         for(auto doomedOrderId : action.orderIdsToCancel){
             cancelOrderWithAllMatchers(doomedOrderId);
             agent->orderCanceled(doomedOrderId, tickCounter);
+            ++tickStats.ordersCanceled;
         }
 
         for(const auto& requestedOrder : action.ordersToPlace){
@@ -97,6 +99,7 @@ void ABM::simStep(){
 
             // TODO: delay matching until all orders are added?
             orderMatchers.at(order.asset).addOrder(order);
+            ++tickStats.ordersPlaced;
             
             if(!notifier.placedOrders.empty() && notifier.placedOrders.back().ordId == order.ordId){
                 notifier.placedOrders.pop_back();
