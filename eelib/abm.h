@@ -20,6 +20,9 @@ struct TickStats{
     unsigned int ordersCanceled = 0;
 };
 
+// TODO give markets and stops a TTL. They clog up the book and slow things down.
+// Make sure cancelled TTL orders restore the agents inventory
+
 /// @brief Agent Based Model. Framework for multi agent trading simulations.
 class ABM{
 

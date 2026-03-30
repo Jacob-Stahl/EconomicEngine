@@ -351,7 +351,7 @@ void tinkerWithABM(){
     ironMiner.changePreferedPrice(20, 0);
 
     auto powerPlant = ManufacturerManager(abm, "Coal Power Plant", coalToEnergy);
-    powerPlant.changeNumAgents(20);
+    powerPlant.changeNumAgents(5);
     powerPlant.numAgentsFixed = true;
 
     auto refinery = ManufacturerManager(abm, "Refinery", refineOil);
@@ -367,7 +367,7 @@ void tinkerWithABM(){
     factory.numAgentsFixed = true;
 
     auto farm = ManufacturerManager(abm, "Farm", growFood);
-    farm.changeNumAgents(20);
+    farm.changeNumAgents(5);
     farm.numAgentsFixed = true;
 
     std::vector<std::string> assetsToConsume{"FUEL", "FOOD", "GOODS", "ENERGY"};
