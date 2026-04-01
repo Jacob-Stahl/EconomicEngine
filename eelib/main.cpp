@@ -267,6 +267,7 @@ void tinkerWithABM(){
     -  add population limits? this might help impose some kind of darwinina selection. 
         manufacturer agents with the best recipe for the market conditions survive
     
+    - f(market_conditions, agent_environment) -> optimal recipe
     
     */
 
