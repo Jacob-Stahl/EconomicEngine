@@ -8,6 +8,7 @@ void ABM::observe(){
     for(auto& it : orderMatchers){
         latestObservation.assetSpreads[it.first] = it.second.getSpread();
         latestObservation.assetOrderDepths[it.first] = it.second.getDepth();
+        latestObservation.assetMarketBacklogs[it.first] = it.second.getMarketBacklog();
     };
 };
 
