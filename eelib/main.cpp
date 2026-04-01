@@ -176,6 +176,7 @@ void showObservationsAndStats(const Observation& observations, const TickStats& 
     constexpr int assetWidth = 16;
     constexpr int priceWidth = 10;
     constexpr int volumeWidth = 10;
+    constexpr int backlogWidth = 12;
 
     auto printPrice = [](bool missing, unsigned short price) {
         if (missing) {
@@ -197,9 +198,11 @@ void showObservationsAndStats(const Observation& observations, const TickStats& 
               << std::setw(priceWidth) << "Ask"
               << std::setw(priceWidth) << "Spread"
               << std::setw(volumeWidth) << "Volume"
+              << std::setw(backlogWidth) << "Mkt Bid Qty"
+              << std::setw(backlogWidth) << "Mkt Ask Qty"
               << "Market"
               << "\n";
-    std::cout << std::string(assetWidth + (priceWidth * 3) + volumeWidth + 6, '-') << "\n";
+    std::cout << std::string(assetWidth + (priceWidth * 3) + volumeWidth + (backlogWidth * 2) + 6, '-') << "\n";
 
     if (observations.assetSpreads.empty()) {
         std::cout << "No spreads available.\n";
@@ -212,6 +215,10 @@ void showObservationsAndStats(const Observation& observations, const TickStats& 
         unsigned long volume = volumeIt == observations.assetVolumesPerTick.end()
             ? 0
             : volumeIt->second;
+        auto backlogIt = observations.assetMarketBacklogs.find(asset);
+        MarketBacklog backlog = backlogIt == observations.assetMarketBacklogs.end()
+            ? MarketBacklog{}
+            : backlogIt->second;
 
         std::cout << std::left << std::setw(assetWidth) << asset;
         std::cout << std::right;
@@ -226,6 +233,8 @@ void showObservationsAndStats(const Observation& observations, const TickStats& 
         }
 
         std::cout << std::setw(volumeWidth) << volume;
+        std::cout << std::setw(backlogWidth) << backlog.bidMarketQty;
+        std::cout << std::setw(backlogWidth) << backlog.askMarketQty;
 
         std::cout << "  ";
         if (spread.bidsMissing && spread.asksMissing) {
