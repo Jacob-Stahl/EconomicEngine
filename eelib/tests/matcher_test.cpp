@@ -30,7 +30,10 @@ struct MatcherTest : ::testing::Test {
 
 TEST_F(MatcherTest, EmptyBook_EmptySpread){
     auto spread = matcher.getSpread();
+    auto backlog = matcher.getMarketBacklog();
     EXPECT_TRUE(spread.asksMissing && spread.bidsMissing);
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
 }
 
 
@@ -38,9 +41,12 @@ TEST_F(MatcherTest, AddSellLimit_PopulatesAsk){
     auto sell = newOrder(SELL, LIMIT, 5, 900);
     matcher.addOrder(sell);
     auto spread = matcher.getSpread();
+    auto backlog = matcher.getMarketBacklog();
     EXPECT_FALSE(spread.asksMissing);
     EXPECT_EQ(sell.price, spread.lowestAsk);
     EXPECT_TRUE(spread.bidsMissing);
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
     
     EXPECT_EQ(1, notifier.placedOrders.size());
     EXPECT_EQ(sell.ordId, notifier.placedOrders[0].ordId);
@@ -51,9 +57,12 @@ TEST_F(MatcherTest, AddBuyLimit_PopulatesBid){
     auto buy = newOrder(BUY, LIMIT, 5, 900);
     matcher.addOrder(buy);
     auto spread = matcher.getSpread();
+    auto backlog = matcher.getMarketBacklog();
     EXPECT_FALSE(spread.bidsMissing);
     EXPECT_EQ(buy.price, spread.highestBid);
     EXPECT_TRUE(spread.asksMissing);
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
 
     EXPECT_EQ(1, notifier.placedOrders.size());
     EXPECT_EQ(buy.ordId, notifier.placedOrders[0].ordId);
@@ -64,7 +73,10 @@ TEST_F(MatcherTest, AddBuyMarket_PopulatesMarketOrders){
     auto order = newOrder(BUY, MARKET, 5);
     matcher.addOrder(order);
     auto spread = matcher.getSpread();
+    auto backlog = matcher.getMarketBacklog();
     EXPECT_TRUE(spread.asksMissing && spread.bidsMissing);
+    EXPECT_EQ(5, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
 
     EXPECT_EQ(1, notifier.placedOrders.size());
     EXPECT_EQ(order.ordId, notifier.placedOrders[0].ordId);
@@ -76,7 +88,10 @@ TEST_F(MatcherTest, AddSellMarket_PopulatesMarketOrders){
     auto order = newOrder(SELL, MARKET, 5);
     matcher.addOrder(order);
     auto spread = matcher.getSpread();
+    auto backlog = matcher.getMarketBacklog();
     EXPECT_TRUE(spread.asksMissing && spread.bidsMissing);
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(5, backlog.askMarketQty);
 
     EXPECT_EQ(1, notifier.placedOrders.size());
     EXPECT_EQ(order.ordId, notifier.placedOrders[0].ordId);
@@ -90,11 +105,14 @@ TEST_F(MatcherTest, BuyLimit_Match_SellMarket){
     matcher.addOrder(ask);
     matcher.addOrder(bid);
     auto spread = matcher.getSpread();
+    auto backlog = matcher.getMarketBacklog();
 
     EXPECT_EQ(2, notifier.placedOrders.size());
     EXPECT_EQ(1, notifier.matches.size());
 
     EXPECT_TRUE(spread.asksMissing && spread.bidsMissing);
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
 }
 
 TEST_F(MatcherTest, SellLimit_Match_BuyMarket){
@@ -103,11 +121,14 @@ TEST_F(MatcherTest, SellLimit_Match_BuyMarket){
     matcher.addOrder(bid);
     matcher.addOrder(ask);
     auto spread = matcher.getSpread();
+    auto backlog = matcher.getMarketBacklog();
 
     EXPECT_EQ(2, notifier.placedOrders.size());
     EXPECT_EQ(1, notifier.matches.size());
 
     EXPECT_TRUE(spread.asksMissing && spread.bidsMissing);
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
 }
 
 TEST_F(MatcherTest, PlaceLimits_SpreadIsCorrect){
@@ -126,9 +147,12 @@ TEST_F(MatcherTest, PlaceLimits_SpreadIsCorrect){
     EXPECT_EQ(0, notifier.matches.size());
 
     auto spread = matcher.getSpread();
+    auto backlog = matcher.getMarketBacklog();
     EXPECT_FALSE(spread.asksMissing || spread.bidsMissing);
     EXPECT_EQ(10, spread.lowestAsk);
     EXPECT_EQ(6, spread.highestBid);
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
 }
 
 
@@ -170,9 +194,12 @@ TEST_F(MatcherTest, MatchLimitsAndMarkets_MatchesAndSpreadAreCorrect){
 
     // Check Spread
     auto spread = matcher.getSpread();
+    auto backlog = matcher.getMarketBacklog();
     EXPECT_FALSE(spread.asksMissing || spread.bidsMissing);
     EXPECT_EQ(12, spread.lowestAsk);
     EXPECT_EQ(5, spread.highestBid);
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
 }
 
 TEST_F(MatcherTest, MatchStopLimits_MatchesAndSpreadAreCorrect){
@@ -211,8 +238,11 @@ TEST_F(MatcherTest, MatchStopLimits_MatchesAndSpreadAreCorrect){
 
     // Check Spread
     auto spread = matcher.getSpread();
+    auto backlog = matcher.getMarketBacklog();
     EXPECT_EQ(60, spread.lowestAsk);
     EXPECT_TRUE(spread.bidsMissing);
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
 
 }
 
@@ -229,10 +259,13 @@ TEST_F(MatcherTest, SellStop_TriggersAfterWittlingBuys){
     matcher.addOrder(buy2);
     matcher.addOrder(buy3);
     matcher.addOrder(sellStop);
+    auto backlog = matcher.getMarketBacklog();
 
     // No matches yet; stop should be inactive
     EXPECT_EQ(4, notifier.placedOrders.size());
     EXPECT_EQ(0, notifier.matches.size());
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(50, backlog.askMarketQty);
 
     // Use SELL MARKET orders to eat into the buy ladder
     matcher.addOrder(newOrder(SELL, MARKET, 50)); // consumes buy1 @100
@@ -247,6 +280,10 @@ TEST_F(MatcherTest, SellStop_TriggersAfterWittlingBuys){
     }
 
     EXPECT_TRUE(stopExecuted);
+
+    backlog = matcher.getMarketBacklog();
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
 }
 
 TEST_F(MatcherTest, DumpOrdersTo_ExcludesCompletelyFilledOrders){
@@ -270,6 +307,7 @@ TEST_F(MatcherTest, DumpOrdersTo_ExcludesCompletelyFilledOrders){
     // Dump remaining orders
     std::vector<Order> dumped;
     matcher.dumpOrdersTo(dumped);
+    auto backlog = matcher.getMarketBacklog();
 
     bool foundBuyLimit1 = false;
     bool foundSellMarket = false;
@@ -293,6 +331,8 @@ TEST_F(MatcherTest, DumpOrdersTo_ExcludesCompletelyFilledOrders){
     // Partially filled / unfilled limits should be present
     EXPECT_TRUE(foundBuyLimit2);
     EXPECT_TRUE(foundSellLimit);
+    EXPECT_EQ(0, backlog.bidMarketQty);
+    EXPECT_EQ(0, backlog.askMarketQty);
 }
 
 TEST_F(MatcherTest, GetOrderCounts_ReturnsCorrectCounts){

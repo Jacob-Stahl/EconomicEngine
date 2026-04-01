@@ -132,6 +132,13 @@ void Matcher::addOrder(Order& order, bool thenMatch)
             break;
         case MARKET:
         case STOP:
+            // Add qty to market backlog
+            if(order.side == BUY){
+                marketBacklog.bidMarketQty += order.qty;
+            }
+            else{
+                marketBacklog.askMarketQty += order.qty;
+            }
             marketOrders.push_back(order);
             break;
         default:
@@ -522,6 +529,19 @@ TypeFilled Matcher::matchMarketAndLimit(Order& marketOrd, Order& limitOrd){
     }
 
     Match match = Match(marketOrd, limitOrd, fillThisMatch);
+
+    // Subtract match qty from market backlog
+    if(marketOrd.side == BUY){
+        marketBacklog.bidMarketQty -= match.qty;
+    }
+    else{
+        marketBacklog.askMarketQty -= match.qty;
+    }
+
     this->notifier->notifyOrderMatched(match);
     return typeFilled;
+}
+
+const MarketBacklog Matcher::getMarketBacklog(){
+    return marketBacklog;
 }
