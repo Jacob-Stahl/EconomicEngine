@@ -246,7 +246,9 @@ unsigned int ManufacturerManager::newNumAgents() {
         // Prevents the count from getting stuck with low agent populations
         agentDiff = (recentSaleCount > staleCount) ? 1 : -1;
     }
-    const long nextCount = std::max(0L, currentCount + agentDiff);
+
+    // Set the new desired population, with a min of 1
+    const long nextCount = std::max(1L, currentCount + agentDiff);
 
     return static_cast<unsigned int>(nextCount);
 }

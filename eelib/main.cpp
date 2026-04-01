@@ -259,11 +259,23 @@ void tinkerWithABM(){
     int numSteps = 10000;
     auto abm = std::make_shared<ABM>();
 
-    Recipe refineOil({{"OIL", 4}}, {{"FUEL", 1}, {"FERTILIZER", 1}, {"PLASTIC", 2}}, 10);
-    Recipe growFood({{"FERTILIZER", 1}, {"FUEL", 1}}, {{"FOOD", 10}}, 5);
+    // TODO - Perhaps some kind of selection could be done to find the optimial population of manufacturers per recipe
+    
+    /*
+    -  use LABOR to simulate population? that might help make this a closed loop
+    -  define recipies in a json, then use a loop to automatically create manufacturer populations.
+    -  add population limits? this might help impose some kind of darwinina selection. 
+        manufacturer agents with the best recipe for the market conditions survive
+    
+    
+    */
+
+    Recipe refineOil({{"OIL", 16}}, {{"FUEL", 4}, {"FERTILIZER", 1}, {"PLASTIC", 2}}, 10);
+    Recipe growFood({{"FERTILIZER", 10}, {"FUEL", 5}}, {{"FOOD", 2}}, 5);
     Recipe smeltSteel({{"COAL", 5}, {"ENERGY", 100}, {"IRON_ORE", 5}}, {{"STEEL", 4}}, 5);
-    Recipe coalToEnergy({{"COAL", 5}}, {{"ENERGY", 50}}, 5);
-    Recipe makeGoods({{"STEEL", 2}, {"PLASTIC", 5}}, {{"ENERGY", 10}, {"GOODS", 5}});
+    Recipe coalToEnergy({{"COAL", 20}}, {{"ENERGY", 10}}, 5);
+    Recipe makeGoods({{"STEEL", 2}, {"PLASTIC", 10}}, {{"ENERGY", 10}, {"GOODS", 5}});
+    Recipe pyrolysis({{"PLASTIC", 10}}, {{"OIL", 1}});
 
     auto driller = ProducerManager(abm, "Driller", "OIL");
     driller.changeNumAgents(1);
@@ -279,23 +291,28 @@ void tinkerWithABM(){
 
     auto powerPlant = ManufacturerManager(abm, "Coal Power Plant", coalToEnergy);
     powerPlant.changeNumAgents(5);
-    powerPlant.numAgentsFixed = true;
+    powerPlant.numAgentsFixed = false;
+
+    auto pyrolysisPlant = ManufacturerManager(abm, "Pyrolysis Plant", pyrolysis);
+    pyrolysisPlant.changeNumAgents(5);
+    pyrolysisPlant.numAgentsFixed = false;
+
 
     auto refinery = ManufacturerManager(abm, "Refinery", refineOil);
     refinery.changeNumAgents(20);
-    refinery.numAgentsFixed = true;
+    refinery.numAgentsFixed = false;
 
     auto steelFoundery = ManufacturerManager(abm, "Steel Foundery", smeltSteel);
     steelFoundery.changeNumAgents(20);
-    steelFoundery.numAgentsFixed = true;
+    steelFoundery.numAgentsFixed = false;
 
     auto factory = ManufacturerManager(abm, "Factory", makeGoods);
     factory.changeNumAgents(20);
-    factory.numAgentsFixed = true;
+    factory.numAgentsFixed = false;
 
     auto farm = ManufacturerManager(abm, "Farm", growFood);
     farm.changeNumAgents(5);
-    farm.numAgentsFixed = true;
+    farm.numAgentsFixed = false;
 
     std::vector<std::string> assetsToConsume{"FUEL", "FOOD", "GOODS", "ENERGY"};
     std::vector<std::unique_ptr<ConsumerManager>> consumerManagers{};
