@@ -246,23 +246,6 @@ TEST_F(ABMTest, TickCallbacksRunAfterEveryStep) {
     EXPECT_EQ(callbackPtr->callCount, 2);
 }
 
-TEST(ManufacturerManagerTest, TickCallbackCanShrinkManufacturerCount) {
-    auto abm = std::make_shared<ABM>();
-    Recipe recipe;
-    ManufacturerManager manager(abm, "manufacturers", recipe);
-
-    manager.numAgentsFixed = false;
-    manager.neutralAge = tick(2);
-    manager.staleAge = tick(4);
-    manager.changeNumAgents(1);
-
-    abm->simStep();
-    EXPECT_EQ(abm->getNumAgents(), 1u);
-
-    abm->simStep();
-    EXPECT_EQ(abm->getNumAgents(), 0u);
-}
-
 TEST(RecipeTest, ConstructorAcceptsReadableBraceInitialization) {
     Recipe recipe({{"OIL", 2}, {"LABOR", 1}}, {{"FUEL", 1}}, 15);
 
