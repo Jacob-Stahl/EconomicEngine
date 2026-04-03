@@ -16,7 +16,6 @@ set(EELIB_SOURCES
 
 add_library(eelib STATIC ${EELIB_SOURCES})
 target_include_directories(eelib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(eelib PUBLIC nlohmann_json::nlohmann_json)
 
 add_executable(eelib_app main.cpp)
 target_link_libraries(eelib_app PRIVATE eelib)
@@ -27,17 +26,28 @@ include(FetchContent)
 FetchContent_Declare(
 	googletest
 	GIT_REPOSITORY https://github.com/google/googletest.git
-	GIT_TAG main
+	GIT_TAG v1.17.0
+	UPDATE_DISCONNECTED ON
 )
-FetchContent_Declare(
-    nlohmann_json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG v3.11.3
-)
-FetchContent_MakeAvailable(googletest nlohmann_json)
+FetchContent_MakeAvailable(googletest)
+
+find_package(nlohmann_json CONFIG QUIET)
+if(NOT nlohmann_json_FOUND)
+	FetchContent_Declare(
+		nlohmann_json
+		GIT_REPOSITORY https://github.com/nlohmann/json.git
+		GIT_TAG v3.11.3
+	)
+	FetchContent_MakeAvailable(nlohmann_json)
+endif()
+
+target_link_libraries(eelib PUBLIC nlohmann_json::nlohmann_json)
 
 file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
 add_executable(test_eelib ${TEST_SOURCES})
+target_include_directories(test_eelib BEFORE PRIVATE
+	${googletest_SOURCE_DIR}/googletest/include
+	${googletest_SOURCE_DIR}/googletest
+)
 target_link_libraries(test_eelib PRIVATE eelib gtest_main)
 add_test(NAME eelib_tests COMMAND test_eelib)
-
