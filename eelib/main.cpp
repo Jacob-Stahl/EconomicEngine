@@ -337,3 +337,23 @@ void tinkerWithABM_ConsumptionEconV1(){
         showObservationsAndStats(abm->getLatestObservation(), abm->getTickStats());
     }
 };
+
+void tinkerWithABM_ConsumptionEconV2(){
+
+    int numSteps = 10000;
+    auto abm = std::make_shared<ABM>();
+
+    const std::string recipeJson = R"json([
+    ])json";;
+
+    const std::vector<Recipe> recipes = parseRecipesJson(recipeJson);
+
+    // Create manufacturer managers for all recipes
+    for(auto& recipe : recipes){
+        auto population = ManufacturerManager(abm, "Manager", recipe);
+
+        // Set starting population to 10
+        population.changeNumAgents(10);
+        population.numAgentsFixed = false;
+    };
+}

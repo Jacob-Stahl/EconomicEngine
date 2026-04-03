@@ -216,3 +216,25 @@ class Manufacturer : public Agent{
         void orderCanceled(long orderId, const tick now) override;
         Action lastWill(const Observation& observation) override;
 };
+
+struct PersonState{
+
+};
+
+class Person : public Agent{
+    /*
+    
+    Hungry for multiple assets.
+    // Basic needs. Steep hunger curve. Agent dies if it goes a certain amount of ticks without consuming all of these
+        - WATER
+        - PROTIEN
+        - CARBS
+        - SUGAR
+
+    // ?? With limited money, how to agents prioritize what to purchase? what they are most hungry for at this instant? what they run out of first?
+
+    // Maslows Hierarchy of needs. https://en.wikipedia.org/wiki/Maslow's_hierarchy_of_needs#/media/File:Maslow's_Hierarchy_of_Needs_Pyramid_(original_five-level_model).png
+    // ?? I suppose "assets" higher up on the pyramid could have flatter hunger curves.  Do agents die without esteem? can ESTEEM be a modeled as a commodity?
+
+    */
+};
