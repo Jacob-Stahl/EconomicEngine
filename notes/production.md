@@ -27,4 +27,4 @@
 
 - ?? FOOD as an abstract concept is completely inelastic. People will pay any price for it if the alternative is death. Fortunally there are many recipies for FOOD in the real world. If the price of ONIONS goes up 10x, the market will pivot to recipes that don't require ONIONS as feedstock.
 
-- ?? I expect assets with many diverse recipes leading to it to be relatively inelasitc, while
+- ?? I expect assets with many diverse recipes leading to it to be relatively elastic. An important asset with only a few paths leading to it is expected to be inelastic, and prone to price shocks.
