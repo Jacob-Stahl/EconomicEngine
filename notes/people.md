@@ -12,7 +12,7 @@
     - CLOTHS
     - SHELTER
 
-- ?? I suppose "assets" higher up on the pyramid could have flatter hunger curves.  Do agents die without esteem? can ESTEEM be a modeled as a commodity?
+- ?? I suppose "assets" higher up on the pyramid could have flatter hunger curves. Do agents die without esteem? can ESTEEM be a modeled as a commodity in a way that makes sense?
 
 - ?? In the real world, all people have the same basic biological requirements that are more easily modeled. Agents might have different preferences for wants/needs higher up on the pyramid. Higher needs (desires?) might be modeled with differently shaped hunger curves that vary between individual agents.
 
