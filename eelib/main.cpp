@@ -14,10 +14,10 @@
 #include "agent_manager.h"
 
 void benchmarkMatcher();
-void tinkerWithABM();
+void tinkerWithABM_ConsumptionEconV1();
 
 int main() {
-    tinkerWithABM();
+    tinkerWithABM_ConsumptionEconV1();
 }
 
 
@@ -253,7 +253,7 @@ void showObservationsAndStats(const Observation& observations, const TickStats& 
     std::cout.flush();
 }
 
-void tinkerWithABM(){
+void tinkerWithABM_ConsumptionEconV1(){
 
     // Setup
     int numSteps = 10000;
