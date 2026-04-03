@@ -60,3 +60,30 @@ TEST(ManufacturerTest, PolicyCraftsInventoryAndPlacesSellOrdersForOutputs) {
     EXPECT_EQ(state->inventory.qty("METAL"), 2);
     EXPECT_EQ(state->timeSinceLastSale, tick(1));
 }
+
+TEST(RecipeJsonTest, ParseRecipesJsonBuildsRecipeVectorFromString) {
+    const std::string jsonText = R"json(
+    [
+        {
+            "inputs": {"ORE": 2, "LABOR": 1},
+            "outputs": {"METAL": 1},
+            "cost": 15
+        },
+        {
+            "inputs": {"SAND": 3},
+            "outputs": {"GLASS": 2}
+        }
+    ]
+    )json";
+
+    const std::vector<Recipe> recipes = parseRecipesJson(jsonText);
+
+    ASSERT_EQ(recipes.size(), 2u);
+    EXPECT_EQ(recipes[0].inputs.at("ORE"), 2);
+    EXPECT_EQ(recipes[0].inputs.at("LABOR"), 1);
+    EXPECT_EQ(recipes[0].outputs.at("METAL"), 1);
+    EXPECT_EQ(recipes[0].cost, 15);
+    EXPECT_EQ(recipes[1].inputs.at("SAND"), 3);
+    EXPECT_EQ(recipes[1].outputs.at("GLASS"), 2);
+    EXPECT_EQ(recipes[1].cost, 0);
+}

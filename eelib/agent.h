@@ -156,6 +156,8 @@ struct Recipe {
     {}
 };
 
+std::vector<Recipe> parseRecipesJson(const std::string& jsonText);
+
 class Inventory {
     std::map<std::string, long> assets{};
     long cashBalance = 0;
