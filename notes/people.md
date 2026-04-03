@@ -2,7 +2,6 @@
 
 - [Maslow's Heirarchy of Needs](https://en.wikipedia.org/wiki/Maslow%27s_hierarchy_of_needs#/media/File:Maslow's_Hierarchy_of_Needs_Pyramid_(original_five-level_model).png)
 
-
 - Basic needs have steep hunger curves. Agents die if the go a certain amount of ticks without consuming all of these.
     - WATER
     - PROTEIN

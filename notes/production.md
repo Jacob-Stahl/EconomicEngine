@@ -1,4 +1,3 @@
-
 # Recipes
 
 - Recipes provide ways to transmute assets into other assets. They have inputs and outputs. Agents (like Manufacturers) follow recipes to produce assets.
@@ -18,4 +17,8 @@
 - ?? https://en.wikipedia.org/wiki/Hypergraph
 - ?? A collection of recipes can be modeled as Hypergraph, where every asset is a node, and every Recipe is a hyperedge connecting multiple nodes.
 
+- ?? A vertically integrated SuperManufacturer or some kind of central planner could observe the market state, and find the most advantagous path through the Recipe hyper graph that maximizes profit or minimizes the cost of [People's Needs](people.md).
 
+# Production
+
+- ?? Production could be monitored by displaying a directed graph, where each node is an asset, and each edge is the net production flow rate from one asset to the other.
