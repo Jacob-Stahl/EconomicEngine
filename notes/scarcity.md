@@ -1,0 +1,5 @@
+# Resources
+
+# Carrying Capacity
+
+# Money

@@ -10,7 +10,7 @@
 },
 ```
 
-- ?? They can be a be a stand in for technology. In the early stages of a civilization, only simple and inefficent recipes are feasible for Agents to exploit. As an economy develops, new recipes become feasible as feedstock drops in price, and more complex assets are produced.
+- ?? They can be a be a stand in for technology. In the early stages of a civilization, only simple and inefficent recipes are feasible for Agents to exploit. As an economy develops, new recipes become feasible as feedstock drops in price, and more complex assets are produced. Hunter-Gatherers might only exploit 2 recipes, then pivot to basic subsistance farming recipes if its advantagious. 
 
 - ?? How do manufacturers plan to use new recipes? It might be advantagious to follow a Recipe that turns NUCLEAR_FUEL into large amounts of ENERGY, but not if there are no agents producing NUCLEAR_FUEL. Conversely, why would an agent follow an expensive Recipe to produce NUCLEAR_FUEL if there are no buyers. This is a catch 22.
 
@@ -22,3 +22,9 @@
 # Production
 
 - ?? Production could be monitored by displaying a directed graph, where each node is an asset, and each edge is the net production flow rate from one asset to the other.
+
+# Elasticity
+
+- ?? FOOD as an abstract concept is completely inelastic. People will pay any price for it if the alternative is death. Fortunally there are many recipies for FOOD in the real world. If the price of ONIONS goes up 10x, the market will pivot to recipes that don't require ONIONS as feedstock.
+
+- ?? I expect assets with many diverse recipes leading to it to be relatively inelasitc, while
