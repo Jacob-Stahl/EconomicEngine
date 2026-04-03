@@ -19,6 +19,8 @@
 
 - ?? A vertically integrated SuperManufacturer or some kind of central planner could observe the market state, and find the most advantagous path through the Recipe hyper graph that maximizes profit or minimizes the cost of [People's Needs](people.md).
 
+- ?? Hopefully path optimization on hypergraph isn't NP-Hard...
+
 # Production
 
 - ?? Production could be monitored by displaying a directed graph, where each node is an asset, and each edge is the net production flow rate from one asset to the other.
