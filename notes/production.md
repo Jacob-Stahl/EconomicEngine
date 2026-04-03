@@ -17,9 +17,14 @@
 - ?? https://en.wikipedia.org/wiki/Hypergraph
 - ?? A collection of recipes can be modeled as Hypergraph, where every asset is a node, and every Recipe is a hyperedge connecting multiple nodes.
 
-- ?? A vertically integrated SuperManufacturer or some kind of central planner could observe the market state, and find the most advantagous path through the Recipe hyper graph that maximizes profit or minimizes the cost of [People's Needs](people.md).
+- ?? A vertically integrated SuperManufacturer or some kind of central planner could observe the market state, and find the most advantagous path through the Recipe hyper graph that maximizes profit or minimizzes the cost of [People's Needs](people.md).
+
+- ?? Cycles in the recipe hypergraph make sense. Recycling is a real life example of this. Need to be careful of cycles that create resouces out of thin air. The market would like a perpetual motion machine, but its unrealistic.
 
 - ?? Hopefully path optimization on hypergraph isn't NP-Hard...
+
+## Papers
+    - https://arxiv.org/pdf/1202.0082
 
 # Production
 
@@ -30,3 +35,7 @@
 - ?? FOOD as an abstract concept is completely inelastic. People will pay any price for it if the alternative is death. Fortunally there are many recipies for FOOD in the real world. If the price of ONIONS goes up 10x, the market will pivot to recipes that don't require ONIONS as feedstock.
 
 - ?? I expect assets with many diverse recipes leading to it to be relatively elastic. An important asset with only a few paths leading to it is expected to be inelastic, and prone to price shocks.
+
+# Waste
+
+- ?? Might need negative prices for this
