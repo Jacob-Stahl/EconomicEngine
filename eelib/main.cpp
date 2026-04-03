@@ -335,6 +335,5 @@ void tinkerWithABM(){
     for(int i = 0; i < numSteps; i++){
         abm->simStep();
         showObservationsAndStats(abm->getLatestObservation(), abm->getTickStats());
-        //showManufacturerManagerState(refinery);
     }
 };
