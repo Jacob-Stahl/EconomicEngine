@@ -298,7 +298,6 @@ void tinkerWithABM(){
     pyrolysisPlant.changeNumAgents(5);
     pyrolysisPlant.numAgentsFixed = false;
 
-
     auto refinery = ManufacturerManager(abm, "Refinery", refineOil);
     refinery.changeNumAgents(20);
     refinery.numAgentsFixed = false;
