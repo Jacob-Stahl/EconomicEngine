@@ -15,9 +15,10 @@
 
 void benchmarkMatcher();
 void tinkerWithABM_ConsumptionEconV1();
+void tinkerWithABM_ConsumptionEconV2();
 
 int main() {
-    tinkerWithABM_ConsumptionEconV1();
+    tinkerWithABM_ConsumptionEconV2();
 }
 
 
@@ -349,11 +350,20 @@ void tinkerWithABM_ConsumptionEconV2(){
 
     // Define recipes
     const std::string recipesJson = R"json([
-    ])json";;
+    ])json";
     const std::vector<Recipe> recipes = parseRecipesJson(recipesJson);
 
     // Define people's desires
-
+    const std::vector<std::string> desiredAssets{
+        "FOOD", "ENERGY", "WATER"
+    };
+    const std::vector<Desire> desires;
+    for(auto& asset : desiredAssets){
+        Desire desire{
+            asset, 
+            tick(10) // Agent dies after 10 ticks without this asset
+        };
+    };
 
     // Create producer managers for each natual resource
     for(auto& naturalResource : naturalResources){
@@ -373,7 +383,14 @@ void tinkerWithABM_ConsumptionEconV2(){
 
     // Create people manager
     auto peopleManager = PersonManager(abm, "Manager");
+    peopleManager.desires = std::move(desires);
+    peopleManager.population = 100;
+    peopleManager.malthusFactor = 25;
+    peopleManager.popGrowthPerTick = 0.02;
 
-    
-    
+    // Run
+    for(int i = 0; i < numSteps; i++){
+        abm->simStep();
+        showObservationsAndStats(abm->getLatestObservation(), abm->getTickStats());
+    }  
 };
