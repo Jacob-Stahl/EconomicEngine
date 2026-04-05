@@ -432,8 +432,6 @@ Action Person::policy(const Observation& observation){
 };
 
 void Person::matchFound(const Match& match, const tick now){
-
-
     // Handle bids for desires
     if(match.buyer.traderId == traderId){
         // Find which desired asset was matched
