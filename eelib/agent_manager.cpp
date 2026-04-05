@@ -25,22 +25,6 @@ unsigned short clampUnsignedShortSample(double value) {
 
 }
 
-class ManufacturerManagerTickCallback : public TickCallback {
-    ManufacturerManager* manager;
-
-public:
-    explicit ManufacturerManagerTickCallback(ManufacturerManager* manager_)
-        : manager(manager_)
-    {}
-
-    void callBackAction() override {
-        if (manager == nullptr || manager->numAgentsFixed) {
-            return;
-        }
-
-        manager->changeNumAgents(manager->newNumAgents());
-    }
-};
 
 std::unique_ptr<Agent> AgentManager::factory(){
     return nullptr;
@@ -166,6 +150,24 @@ void ProducerManager::changeNumAgents(unsigned int numAgents){
 }
 
 // Manufacturer Manager
+
+class ManufacturerManagerTickCallback : public TickCallback {
+    ManufacturerManager* manager;
+
+public:
+    explicit ManufacturerManagerTickCallback(ManufacturerManager* manager_)
+        : manager(manager_)
+    {}
+
+    void callBackAction() override {
+        if (manager == nullptr || manager->numAgentsFixed) {
+            return;
+        }
+
+        manager->changeNumAgents(manager->newNumAgents());
+    }
+};
+
 
 ManufacturerManager::ManufacturerManager(
     std::shared_ptr<ABM> abm_,
