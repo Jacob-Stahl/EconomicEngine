@@ -306,4 +306,4 @@ PersonManager::~PersonManager(){
         abm->removeTickCallback(tickCallbackRegistration);
         tickCallbackRegistration = nullptr;
     }
-}
+};
