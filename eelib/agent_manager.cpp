@@ -256,6 +256,7 @@ unsigned int ManufacturerManager::newAgentPopulation() {
 
 // Person Manager
 
+// TODO don't forget to kill old or starving agents!
 unsigned int PersonManager::numBirths(){
     float growthDecay = std::min(1.0f, malthusFactor / (float)population);
     float growthProportion = popGrowthPerTick * growthDecay; 
