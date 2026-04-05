@@ -119,7 +119,7 @@ class ManufacturerManager : public AgentManager{
         
         /// @brief Find the new number of agents. 
         /// @return 
-        unsigned int newNumAgents();
+        unsigned int newAgentPopulation();
 };
 
 class PersonManager : public AgentManager{
@@ -127,6 +127,7 @@ class PersonManager : public AgentManager{
     std::vector<std::shared_ptr<PersonState>> states;
     TickCallback* TickCallbackRegistration = nullptr;
 
+    // TODO add desires and spending power
 
     public:
         unsigned int population = 0;
@@ -135,7 +136,7 @@ class PersonManager : public AgentManager{
         /// @brief population growth begins decay beyond this point
         unsigned int malthusFactor = 100;
 
-        /// @brief new population = this * population * min(1, malthusFactor / population)
+        /// @brief births = population * min(1, malthusFactor / population)
         float popGrowthPerTick = 0.01;
 
         PersonManager(
@@ -145,12 +146,14 @@ class PersonManager : public AgentManager{
         );
 
         ~PersonManager() override;
-        void changeNumAgents(unsigned int numAgents);
+        std::unique_ptr<Agent> factory() override;
+
+        void birthNewAgents(unsigned int births);
         const std::vector<std::shared_ptr<PersonState>>& getStates() const {
             return states;
         }
 
         /// @brief Find the new number of agents. 
         /// @return 
-        unsigned int newNumAgents();
+        unsigned int numBirths();
 };

@@ -164,7 +164,7 @@ public:
             return;
         }
 
-        manager->changeNumAgents(manager->newNumAgents());
+        manager->changeNumAgents(manager->newAgentPopulation());
     }
 };
 
@@ -222,7 +222,7 @@ void ManufacturerManager::changeNumAgents(unsigned int numAgents){
     }
 }
 
-unsigned int ManufacturerManager::newNumAgents() {
+unsigned int ManufacturerManager::newAgentPopulation() {
     const long currentCount = static_cast<long>(states.size());
 
     if (numAgentsFixed || currentCount <= 0) {
@@ -257,8 +257,18 @@ unsigned int ManufacturerManager::newNumAgents() {
 
 // Person Manager
 
-unsigned int PersonManager::newNumAgents(){
+unsigned int PersonManager::numBirths(){
     float growthDecay = std::min(1.0f, malthusFactor / (float)population);
     float growthProportion = popGrowthPerTick * growthDecay; 
-    return population + (population * growthProportion);
+    return (population * growthProportion);
+}
+
+void PersonManager::birthNewAgents(unsigned int births){
+    for(int i = 0; i < births; i++){
+        create();
+    }
+}
+
+std::unique_ptr<Agent> PersonManager::factory(){
+    // TODO add desires and spending power
 }
