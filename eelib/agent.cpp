@@ -449,7 +449,9 @@ void Person::matchFound(const Match& match, const tick now){
     // Handle sale of LABOR
     if(match.seller.traderId == traderId){
 /*
-    It could be interesting to adjust spendingPower based on the LABOR sale price (wage)
+    It could be interesting to dynamically adjust spendingPower 
+    based on the LABOR sale price (wage)
+    
     NOP for now.
 */
     }
