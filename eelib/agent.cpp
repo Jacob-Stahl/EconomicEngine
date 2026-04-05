@@ -347,3 +347,10 @@ Action Manufacturer::lastWill(const Observation& observation) {
 
     return Action(std::move(doomedOrderIds));
 }
+
+// Person Implementation
+
+
+Action Person::policy(const Observation& observation){
+    
+}

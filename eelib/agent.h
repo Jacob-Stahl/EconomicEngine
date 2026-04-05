@@ -225,13 +225,33 @@ struct Desire{
     bool hasDeathThreshhold = false;
 
     Desire() = default;
+    float percentageToDeath(){
+        return ((float)ticksSinceLastConsumption.raw() / (float)deathTheshhold.raw());
+    };
 };
 
 struct PersonState{
     std::vector<Desire> desires;
+    Inventory inventory;
 };
 
 class Person : public Agent{
+    std::shared_ptr<PersonState> state;
+
+    public:
+        Person(
+            long traderId_, 
+            std::shared_ptr<PersonState> state_
+        ) : Agent(traderId_){
+            state = state_;
+        }
+
+        Action policy(const Observation& observation) override;
+        void orderPlaced(long orderId, const tick now) override;
+        void matchFound(const Match& match, const tick now) override;
+        void orderCanceled(long orderId, const tick now) override;
+        Action lastWill(const Observation& observation) override;
+
     /*
     
     Hungry for multiple assets.
