@@ -102,12 +102,11 @@ class ManufacturerManager : public AgentManager{
         ManufacturerManager(
             std::shared_ptr<ABM> abm_,
             std::string name_,
-            Recipe recipe);
+            Recipe recipe
+        );
 
         ~ManufacturerManager() override;
-
-        std::unique_ptr<Agent> factory() override;
-        
+        std::unique_ptr<Agent> factory() override;     
         void changeNumAgents(unsigned int numAgents);
 
         const std::vector<std::shared_ptr<ManufacturerState>>& getStates() const {
@@ -118,12 +117,36 @@ class ManufacturerManager : public AgentManager{
             return recipe;
         }
         
-
         /// @brief Find the new number of agents. 
         /// @return 
         unsigned int newNumAgents();
+};
 
-        // agent_diff = (recent_sale_count - stale_count) * scale_factor
-        // new_num_agents = num_agents + agent_diff
-        
+class PersonManager : public AgentManager{
+    std::mt19937 gen;
+    std::vector<std::shared_ptr<PersonState>> states;
+    TickCallback* TickCallbackRegistration = nullptr;
+
+
+    public:
+        unsigned int population = 0;
+
+        /// @brief new population = this * population
+        float popGrowthPerTick = 0.01;
+
+        PersonManager(
+            std::shared_ptr<ABM> abm_,
+            std::string name_,
+            Recipe recipe
+        );
+
+        ~PersonManager() override;
+        void changeNumAgents(unsigned int numAgents);
+        const std::vector<std::shared_ptr<PersonState>>& getStates() const {
+            return states;
+        }
+
+        /// @brief Find the new number of agents. 
+        /// @return 
+        unsigned int newNumAgents(){ return population + (population * popGrowthPerTick); };
 };
