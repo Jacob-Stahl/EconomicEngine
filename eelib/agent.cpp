@@ -350,7 +350,81 @@ Action Manufacturer::lastWill(const Observation& observation) {
 
 // Person Implementation
 
-
 Action Person::policy(const Observation& observation){
+
+    Action action{};
     
+    // Cancel previous buy order, if any
+    long lastPlacedBuyId = state->lastPlacedBuyId;
+    if(lastPlacedBuyId != -1){
+        action.addCancellation(lastPlacedBuyId);
+    }
+    else{
+        return Action();
+    }
+
+    // BUY LIMIT 1 unit of Desire with highest deathPercentage
+    Desire mostDesired;
+    float highestDeathPercentage = -1;
+    size_t i = 0;
+    for(auto& desire : state->desires){
+        float deathPercentage = desire.percentageToDeath();
+        if(deathPercentage > highestDeathPercentage){
+            highestDeathPercentage = highestDeathPercentage;
+            mostDesired = desire;
+        };
+    };
+
+    // TODO this will be problematic if ticks > short max value. ok for nows
+    unsigned short price = mostDesired.ticksSinceLastConsumption.raw();
+    Order buy(
+        mostDesired.asset,
+        BUY,
+        LIMIT,
+        price,
+        1
+    );
+    action.addOrder(buy);
+
+    // SELL MARKET 1 unit of labor
+    Order sell(
+        "LABOR",
+        SELL,
+        MARKET, 
+        0, 
+        1
+    );
+    action.addOrder(sell);
+
+    return action;
+};
+
+void Person::matchFound(const Match& match, const tick now){
+
+    // Find which desired asset was matched
+    // Reset time since last consumption
+
+    for(auto& desire : state->desires){
+        if(match.buyer.asset == desire.asset){
+            desire.ticksSinceLastConsumption = tick(0);
+        };
+    }
+};
+
+void Person::orderPlaced(long orderId, const tick now){
+    state->lastPlacedBuyId = orderId;
+};
+
+void Person::orderCanceled(long orderId, const tick now){
+    state->lastPlacedBuyId = -1;
+}
+
+Action Person::lastWill(const Observation& observation){
+    long lastPlacedBuyId = state->lastPlacedBuyId;
+    if(lastPlacedBuyId != -1){
+        return Action(lastPlacedBuyId);
+    }
+    else{
+        return Action();
+    }
 }

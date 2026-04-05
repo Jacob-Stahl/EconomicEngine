@@ -222,17 +222,17 @@ struct Desire{
     std::string asset;
     tick ticksSinceLastConsumption = tick(0);
     tick deathTheshhold = tick(0);
-    bool hasDeathThreshhold = false;
 
     Desire() = default;
-    float percentageToDeath(){
+    const float percentageToDeath(){
         return ((float)ticksSinceLastConsumption.raw() / (float)deathTheshhold.raw());
     };
 };
 
 struct PersonState{
+    long lastPlacedBuyId = -1;
     std::vector<Desire> desires;
-    Inventory inventory;
+    bool shouldDie();
 };
 
 class Person : public Agent{
