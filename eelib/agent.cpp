@@ -350,45 +350,51 @@ Action Manufacturer::lastWill(const Observation& observation) {
 
 // Person Implementation
 
-bool PersonState::shouldDie(){
-    for(auto& desire : desires){
+float Desire::proportionToDeath() const{
+    float sinceLastCons = (float)ticksSinceLastConsumption.raw();
+    float thresh = (float)deathTheshhold.raw();
+
+    if(thresh == 0){
+        return 0;
+    }
+
+    return sinceLastCons / thresh;
+}
+
+bool PersonState::shouldDie() const{
+    // Check for starvation
+    for(const auto& desire : desires){
         if(desire.proportionToDeath() >= 1){
             return true;
         }
     }
+
+    // Check for senescence
+    if(lifeSpan > zeroTick() && lifeSpan < age){
+        return true;
+    }
+
     return false;
+}
+
+void PersonState::incrementAllDesireTicks(){
+    for(auto& desire : desires){
+        ++desire.ticksSinceLastConsumption;
+    }
 }
 
 Action Person::policy(const Observation& observation){
     Action action{};
+
+    // Age 1 tick. 
+    // TODO Should something like this really be in the policy?
+    ++state->age;
     
     // Cancel previous buy order, if any
     long lastPlacedBuyId = state->lastPlacedBuyId;
     if(lastPlacedBuyId != -1){
         action.addCancellation(lastPlacedBuyId);
     }
-    else{
-        return Action();
-    }
-
-    // BUY LIMIT 1 unit of Desire with highest deathProportion
-    Desire mostDesired;
-    auto it = std::max_element(
-        state->desires.begin(), state->desires.end(),
-            [](const Desire& a, const Desire& b){
-                return a.proportionToDeath() < b.proportionToDeath();
-            });
-
-    // TODO this will be problematic if ticks > short max value. ok for now
-    unsigned short price = mostDesired.ticksSinceLastConsumption.raw();
-    Order buy(
-        mostDesired.asset,
-        BUY,
-        LIMIT,
-        price,
-        1
-    );
-    action.addOrder(buy);
 
     // SELL MARKET 1 unit of labor
     Order sell(
@@ -400,6 +406,29 @@ Action Person::policy(const Observation& observation){
     );
     action.addOrder(sell);
 
+    // Don't place buys if there are no desires
+    if(state->desires.size() == 0){
+        return action;
+    }
+
+    // BUY LIMIT 1 unit of Desire with highest deathProportion
+    auto mostDesired = std::max_element(
+        state->desires.begin(), state->desires.end(),
+            [](const Desire& a, const Desire& b){
+                return a.proportionToDeath() < b.proportionToDeath();
+            });
+
+    // TODO this will be problematic if ticks > short max value. ok for now
+    unsigned short price = mostDesired->ticksSinceLastConsumption.raw();
+    Order buy(
+        mostDesired->asset,
+        BUY,
+        LIMIT,
+        price,
+        1
+    );
+    action.addOrder(buy);
+    state->incrementAllDesireTicks();
     return action;
 };
 

@@ -64,4 +64,8 @@ public:
     }
 };
 
+inline constexpr tick zeroTick(){
+    return tick(0);
+};
+
 static_assert(std::is_standard_layout<tick>::value, "ticks should have standard layout");

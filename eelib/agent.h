@@ -223,17 +223,18 @@ struct Desire{
     tick ticksSinceLastConsumption = tick(0);
     tick deathTheshhold = tick(0);
 
-    public:
-        Desire() = default;
-        float proportionToDeath() const {
-            return ((float)ticksSinceLastConsumption.raw() / (float)deathTheshhold.raw());
-        };
+    Desire() = default;
+    float proportionToDeath() const;
 };
 
 struct PersonState{
     long lastPlacedBuyId = -1;
     std::vector<Desire> desires;
-    bool shouldDie();
+    tick age = tick(0);
+    tick lifeSpan = tick(0);
+
+    bool shouldDie() const;
+    void incrementAllDesireTicks();
 };
 
 class Person : public Agent{
