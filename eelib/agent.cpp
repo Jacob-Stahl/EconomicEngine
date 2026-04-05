@@ -370,7 +370,7 @@ bool PersonState::shouldDie() const{
     }
 
     // Check for senescence
-    if(lifeSpan > zeroTick() && lifeSpan < age){
+    if(lifeSpan > zeroTick() && age > lifeSpan){
         return true;
     }
 
