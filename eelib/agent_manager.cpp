@@ -254,3 +254,11 @@ unsigned int ManufacturerManager::newNumAgents() {
 
     return static_cast<unsigned int>(nextCount);
 }
+
+// Person Manager
+
+unsigned int PersonManager::newNumAgents(){
+    float growthDecay = std::min(1.0f, malthusFactor / (float)population);
+    float growthProportion = popGrowthPerTick * growthDecay; 
+    return population + (population * growthProportion);
+}

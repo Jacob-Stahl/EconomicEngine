@@ -131,7 +131,11 @@ class PersonManager : public AgentManager{
     public:
         unsigned int population = 0;
 
-        /// @brief new population = this * population
+        // Adding this to slow infinite agent growth
+        /// @brief population growth begins decay beyond this point
+        unsigned int malthusFactor = 100;
+
+        /// @brief new population = this * population * min(1, malthusFactor / population)
         float popGrowthPerTick = 0.01;
 
         PersonManager(
@@ -148,5 +152,5 @@ class PersonManager : public AgentManager{
 
         /// @brief Find the new number of agents. 
         /// @return 
-        unsigned int newNumAgents(){ return population + (population * popGrowthPerTick); };
+        unsigned int newNumAgents();
 };
