@@ -168,7 +168,6 @@ public:
     }
 };
 
-
 ManufacturerManager::ManufacturerManager(
     std::shared_ptr<ABM> abm_,
     std::string name_,
@@ -270,5 +269,41 @@ void PersonManager::birthNewAgents(unsigned int births){
 }
 
 std::unique_ptr<Agent> PersonManager::factory(){
-    // TODO add desires and spending power
+    auto state = std::make_shared<PersonState>(PersonState{
+        desires,
+        spendingPower,
+        lifeSpan
+    });
+
+    states.push_back(state);
+    return std::make_unique<Person>(0, state);
+}
+
+class PersonManagerTickCallback : public TickCallback{
+    PersonManager* manager;
+
+    public:
+        explicit PersonManagerTickCallback(PersonManager* manager_)
+            : manager{manager_}
+        {}
+
+        void callBackAction() override {
+            manager->birthNewAgents(manager->numBirths());
+        }
+};
+
+PersonManager::PersonManager(
+    std::shared_ptr<ABM> abm_,
+    std::string name_
+) : AgentManager(abm_, std::move(name_))
+{
+    tickCallbackRegistration = abm->addTickCallback(
+        std::make_unique<PersonManagerTickCallback>(this));
+};
+
+PersonManager::~PersonManager(){
+    if (tickCallbackRegistration != nullptr) {
+        abm->removeTickCallback(tickCallbackRegistration);
+        tickCallbackRegistration = nullptr;
+    }
 }

@@ -125,11 +125,16 @@ class ManufacturerManager : public AgentManager{
 class PersonManager : public AgentManager{
     std::mt19937 gen;
     std::vector<std::shared_ptr<PersonState>> states;
-    TickCallback* TickCallbackRegistration = nullptr;
+    TickCallback* tickCallbackRegistration = nullptr;
 
     // TODO add desires and spending power
 
     public:
+        std::vector<Desire> desires;
+
+        // Give all the same static spending power for now.
+        unsigned short spendingPower = 100;
+        tick lifeSpan = zeroTick();
         unsigned int population = 0;
 
         // Adding this to slow infinite agent growth
@@ -139,15 +144,9 @@ class PersonManager : public AgentManager{
         /// @brief births = population * min(1, malthusFactor / population)
         float popGrowthPerTick = 0.01;
 
-        PersonManager(
-            std::shared_ptr<ABM> abm_,
-            std::string name_,
-            Recipe recipe
-        );
-
+        PersonManager(std::shared_ptr<ABM> abm_, std::string name_);
         ~PersonManager() override;
         std::unique_ptr<Agent> factory() override;
-
         void birthNewAgents(unsigned int births);
         const std::vector<std::shared_ptr<PersonState>>& getStates() const {
             return states;
