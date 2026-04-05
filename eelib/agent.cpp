@@ -360,7 +360,6 @@ bool PersonState::shouldDie(){
 }
 
 Action Person::policy(const Observation& observation){
-
     Action action{};
     
     // Cancel previous buy order, if any
@@ -374,17 +373,13 @@ Action Person::policy(const Observation& observation){
 
     // BUY LIMIT 1 unit of Desire with highest deathProportion
     Desire mostDesired;
-    float highestDeathProportion = -1;
-    size_t i = 0;
-    for(auto& desire : state->desires){
-        float deathProportion = desire.proportionToDeath();
-        if(deathProportion > highestDeathProportion){
-            highestDeathProportion = highestDeathProportion;
-            mostDesired = desire;
-        };
-    };
+    auto it = std::max_element(
+        state->desires.begin(), state->desires.end(),
+            [](const Desire& a, const Desire& b){
+                return a.proportionToDeath() < b.proportionToDeath();
+            });
 
-    // TODO this will be problematic if ticks > short max value. ok for nows
+    // TODO this will be problematic if ticks > short max value. ok for now
     unsigned short price = mostDesired.ticksSinceLastConsumption.raw();
     Order buy(
         mostDesired.asset,

@@ -223,10 +223,11 @@ struct Desire{
     tick ticksSinceLastConsumption = tick(0);
     tick deathTheshhold = tick(0);
 
-    Desire() = default;
-    const float proportionToDeath(){
-        return ((float)ticksSinceLastConsumption.raw() / (float)deathTheshhold.raw());
-    };
+    public:
+        Desire() = default;
+        float proportionToDeath() const {
+            return ((float)ticksSinceLastConsumption.raw() / (float)deathTheshhold.raw());
+        };
 };
 
 struct PersonState{
