@@ -339,14 +339,28 @@ void tinkerWithABM_ConsumptionEconV1(){
 };
 
 void tinkerWithABM_ConsumptionEconV2(){
-
     int numSteps = 10000;
     auto abm = std::make_shared<ABM>();
 
-    const std::string recipeJson = R"json([
-    ])json";;
+    // Define natural resources
+    const std::vector<std::string> naturalResources{
+        "OIL", "COAL", "IRON_ORE"
+    };
 
-    const std::vector<Recipe> recipes = parseRecipesJson(recipeJson);
+    // Define recipes
+    const std::string recipesJson = R"json([
+    ])json";;
+    const std::vector<Recipe> recipes = parseRecipesJson(recipesJson);
+
+    // Define people's desires
+
+
+    // Create producer managers for each natual resource
+    for(auto& naturalResource : naturalResources){
+        auto producer = ProducerManager(abm, "Manager", naturalResource);
+        producer.changeNumAgents(1);
+        producer.changePreferedPrice(50, 0);
+    };
 
     // Create manufacturer managers for all recipes
     for(auto& recipe : recipes){
@@ -356,4 +370,9 @@ void tinkerWithABM_ConsumptionEconV2(){
         population.changeNumAgents(10);
         population.numAgentsFixed = false;
     };
-}
+
+    // Create people manager
+    auto peopleManager = PersonManager(abm, "Manager");
+
+    
+};

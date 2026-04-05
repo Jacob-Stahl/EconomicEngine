@@ -220,8 +220,9 @@ class Manufacturer : public Agent{
 
 struct Desire{
     std::string asset;
-    tick ticksSinceLastConsumption = tick(0);
     tick deathTheshhold = tick(0);
+
+    tick ticksSinceLastConsumption = tick(0);
 
     Desire() = default;
     float proportionToDeath() const;
