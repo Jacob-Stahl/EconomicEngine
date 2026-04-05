@@ -343,33 +343,28 @@ void tinkerWithABM_ConsumptionEconV2(){
     int numSteps = 10000;
     auto abm = std::make_shared<ABM>();
 
-    // Define natural resources
-    const std::vector<std::string> naturalResources{
-        "OIL", "COAL", "IRON_ORE"
-    };
-
     // Define recipes
     const std::string recipesJson = R"json([
+        {
+            "_comment": "Subsistance",
+            "inputs":  {"LABOR": 2},
+            "outputs": {"ENERGY": 1, "WATER" : 1, "FOOD" : 1},
+            "cost": 0
+        }
     ])json";
     const std::vector<Recipe> recipes = parseRecipesJson(recipesJson);
 
     // Define people's desires
     const std::vector<std::string> desiredAssets{
-        "FOOD", "ENERGY", "WATER"
+        "WATER", "FOOD", "ENERGY"
     };
-    const std::vector<Desire> desires;
+    std::vector<Desire> desires;
     for(auto& asset : desiredAssets){
         Desire desire{
             asset, 
             tick(10) // Agent dies after 10 ticks without this asset
         };
-    };
-
-    // Create producer managers for each natual resource
-    for(auto& naturalResource : naturalResources){
-        auto producer = ProducerManager(abm, "Manager", naturalResource);
-        producer.changeNumAgents(1);
-        producer.changePreferedPrice(50, 0);
+        desires.push_back(std::move(desire));
     };
 
     // Create manufacturer managers for all recipes
@@ -386,7 +381,7 @@ void tinkerWithABM_ConsumptionEconV2(){
     peopleManager.desires = std::move(desires);
     peopleManager.population = 100;
     peopleManager.malthusFactor = 25;
-    peopleManager.popGrowthPerTick = 0.02;
+    peopleManager.popGrowthPerTick = 0.05;
 
     // Run
     for(int i = 0; i < numSteps; i++){
