@@ -350,6 +350,15 @@ Action Manufacturer::lastWill(const Observation& observation) {
 
 // Person Implementation
 
+bool PersonState::shouldDie(){
+    for(auto& desire : desires){
+        if(desire.proportionToDeath() >= 1){
+            return true;
+        }
+    }
+    return false;
+}
+
 Action Person::policy(const Observation& observation){
 
     Action action{};
@@ -363,14 +372,14 @@ Action Person::policy(const Observation& observation){
         return Action();
     }
 
-    // BUY LIMIT 1 unit of Desire with highest deathPercentage
+    // BUY LIMIT 1 unit of Desire with highest deathProportion
     Desire mostDesired;
-    float highestDeathPercentage = -1;
+    float highestDeathProportion = -1;
     size_t i = 0;
     for(auto& desire : state->desires){
-        float deathPercentage = desire.percentageToDeath();
-        if(deathPercentage > highestDeathPercentage){
-            highestDeathPercentage = highestDeathPercentage;
+        float deathProportion = desire.proportionToDeath();
+        if(deathProportion > highestDeathProportion){
+            highestDeathProportion = highestDeathProportion;
             mostDesired = desire;
         };
     };

@@ -224,7 +224,7 @@ struct Desire{
     tick deathTheshhold = tick(0);
 
     Desire() = default;
-    const float percentageToDeath(){
+    const float proportionToDeath(){
         return ((float)ticksSinceLastConsumption.raw() / (float)deathTheshhold.raw());
     };
 };
