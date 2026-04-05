@@ -217,8 +217,18 @@ class Manufacturer : public Agent{
         Action lastWill(const Observation& observation) override;
 };
 
-struct PersonState{
 
+struct Desire{
+    std::string asset;
+    tick ticksSinceLastConsumption = tick(0);
+    tick deathTheshhold = tick(0);
+    bool hasDeathThreshhold = false;
+
+    Desire() = default;
+};
+
+struct PersonState{
+    std::vector<Desire> desires;
 };
 
 class Person : public Agent{
