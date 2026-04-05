@@ -230,6 +230,9 @@ struct Desire{
 struct PersonState{
     long lastPlacedBuyId = -1;
     std::vector<Desire> desires;
+
+    /// @brief the highest price an agent is able to bid for a desire
+    unsigned short spendingPower = 0;
     tick age = tick(0);
     tick lifeSpan = tick(0);
 

@@ -418,8 +418,7 @@ Action Person::policy(const Observation& observation){
                 return a.proportionToDeath() < b.proportionToDeath();
             });
 
-    // TODO this will be problematic if ticks > short max value. ok for now
-    unsigned short price = mostDesired->ticksSinceLastConsumption.raw();
+    unsigned short price = mostDesired->proportionToDeath() * state->spendingPower;
     Order buy(
         mostDesired->asset,
         BUY,
@@ -434,13 +433,25 @@ Action Person::policy(const Observation& observation){
 
 void Person::matchFound(const Match& match, const tick now){
 
-    // Find which desired asset was matched
-    // Reset time since last consumption
 
-    for(auto& desire : state->desires){
-        if(match.buyer.asset == desire.asset){
-            desire.ticksSinceLastConsumption = tick(0);
-        };
+    // Handle bids for desires
+    if(match.buyer.traderId == traderId){
+        // Find which desired asset was matched
+        // Reset time since last consumption
+        for(auto& desire : state->desires){
+            if(match.buyer.asset == desire.asset){
+                desire.ticksSinceLastConsumption = tick(0);
+            };
+        }
+        return;
+    }
+
+    // Handle sale of LABOR
+    if(match.seller.traderId == traderId){
+/*
+    It could be interesting to adjust spendingPower based on the LABOR sale price (wage)
+    NOP for now.
+*/
     }
 };
 
