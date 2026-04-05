@@ -11,6 +11,29 @@ void from_json(const nlohmann::json& j, Recipe& recipe) {
     recipe.cost = j.value("cost", 0L);
 }
 
+void from_json(const nlohmann::json& j, Desire& desire) {
+    j.at("asset").get_to(desire.asset);
+    desire.deathTheshhold = tick(j.at("deathThreshold").get<tick::rep>());
+    desire.ticksSinceLastConsumption = tick(j.value("ticksSinceLastConsumption", tick::rep{0}));
+}
+
+std::vector<Desire> parseDesiresJson(const std::string& jsonText) {
+    const nlohmann::json parsed = nlohmann::json::parse(jsonText);
+
+    if (parsed.is_array()) {
+        return parsed.get<std::vector<Desire>>();
+    }
+
+    if (parsed.is_object()) {
+        return {parsed.get<Desire>()};
+    }
+
+    throw nlohmann::json::type_error::create(
+        302,
+        "desire JSON must be an object or array",
+        &parsed);
+}
+
 std::vector<Recipe> parseRecipesJson(const std::string& jsonText) {
     const nlohmann::json parsed = nlohmann::json::parse(jsonText);
 

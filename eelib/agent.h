@@ -228,6 +228,8 @@ struct Desire{
     float proportionToDeath() const;
 };
 
+std::vector<Desire> parseDesiresJson(const std::string& jsonText);
+
 struct PersonState{
     std::vector<Desire> desires;
 
