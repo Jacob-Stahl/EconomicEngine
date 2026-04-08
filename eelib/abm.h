@@ -6,7 +6,6 @@
 #include "matcher.h"
 #include "agent.h"
 
-
 class TickCallback{
     public:
         virtual ~TickCallback() = default;
@@ -27,7 +26,10 @@ struct TickStats{
 class ABM{
 
     TickStats tickStats;
-    const int cleanupCancelledEvery = 16;
+
+    // TODO: Replace a count of how many cancelled orders are on the books
+    // if its over N, run clean up
+    const int cleanupCancelledEvery = 1;
 
     // Agents
     std::vector<std::unique_ptr<Agent>> agents;

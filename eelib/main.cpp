@@ -18,7 +18,7 @@ void tinkerWithABM_ConsumptionEconV1();
 void tinkerWithABM_ConsumptionEconV2();
 
 int main() {
-    tinkerWithABM_ConsumptionEconV2();
+    tinkerWithABM_ConsumptionEconV1();
 }
 
 
