@@ -19,12 +19,10 @@ void ABM::addMatcherIfNeeded(const std::string& asset){
 };
 
 void ABM::routeMatches(std::vector<Match>& matches){
-    
-    // TODO: This sort should be moved so its not repeated constantly. But where?
-    std::sort(agents.begin(), agents.end(), 
-        [](const std::unique_ptr<Agent>& a,
-        const std::unique_ptr<Agent>& b)
-        {return a->traderId < b->traderId; });
+    // Agent traderIds MUST be sorted in accending order. 
+    // This is critical for this method to work properly.
+    // New agent traderIds are always incremented by 1 when they are pushed back to the agents vector. 
+    // Old agents are popped without reordering.
 
     // Sort by buyers.
     std::sort(matches.begin(), matches.end(),
@@ -41,7 +39,7 @@ void ABM::routeMatches(std::vector<Match>& matches){
             agents[agentIdx]->matchFound(match, tickCounter);
         }
 
-        // While we are at it, update volume per tick
+        // While we are here, update volume per tick
         updateAssetVolumePerTick(match.buyer.asset, match.qty);
     }
 

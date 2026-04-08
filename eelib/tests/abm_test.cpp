@@ -102,6 +102,28 @@ TEST_F(ABMTest, RemoveAgentsBasedOnId_TraderIdsEmpty) {
     EXPECT_EQ(abm.getNumAgents(), 4);
 }
 
+TEST_F(ABMTest, AgentIdsAscendingAfterAdd) {
+    abm.addAgent(std::make_unique<MockAgent>(0));
+    abm.addAgent(std::make_unique<MockAgent>(0));
+    abm.addAgent(std::make_unique<MockAgent>(0));
+
+    auto ids = abm.getAgentIds();
+    EXPECT_TRUE(std::is_sorted(ids.begin(), ids.end()));
+}
+
+TEST_F(ABMTest, AgentIdsAscendingAfterRemove) {
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 1
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 2
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 3
+    abm.addAgent(std::make_unique<MockAgent>(0)); // ID 4
+
+    std::vector<long> toRemove{2, 3};
+    abm.removeAgents(toRemove);
+
+    auto ids = abm.getAgentIds();
+    EXPECT_TRUE(std::is_sorted(ids.begin(), ids.end()));
+}
+
 class MockProducerAgent : public Agent {
 public:
     std::string asset;

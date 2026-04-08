@@ -64,6 +64,13 @@ class ABM{
         const Observation& getLatestObservation() {return latestObservation; };
         const TickStats& getTickStats() {return tickStats; };
 
+        std::vector<long> getAgentIds() const {
+            std::vector<long> ids;
+            ids.reserve(agents.size());
+            for (const auto& a : agents) ids.push_back(a->traderId);
+            return ids;
+        }
+
     private:
         std::vector<std::unique_ptr<TickCallback>> tickCallbacks{};
 };
