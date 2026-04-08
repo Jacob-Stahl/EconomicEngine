@@ -16,6 +16,7 @@ set(EELIB_SOURCES
 
 add_library(eelib STATIC ${EELIB_SOURCES})
 target_include_directories(eelib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+# target_compile_options(eelib PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(eelib_app main.cpp)
 target_link_libraries(eelib_app PRIVATE eelib)
@@ -50,4 +51,6 @@ target_include_directories(test_eelib BEFORE PRIVATE
 	${googletest_SOURCE_DIR}/googletest
 )
 target_link_libraries(test_eelib PRIVATE eelib gtest_main)
+
+# TODO remove CTest
 add_test(NAME eelib_tests COMMAND test_eelib)
