@@ -330,7 +330,7 @@ bool Matcher::validateOrder(const Order& order) const{
 void Matcher::matchOrders()
 {
     if(marketOrders.empty()){
-        return; // Exit early if there are now market orders
+        return; // Exit early if there are no market orders
     }
     std::vector<size_t> marketOrdersToRemove{};
     Spread spread = getSpread();
@@ -346,7 +346,7 @@ void Matcher::matchOrders()
             continue;
         }
 
-        // Skip attempts to match orders if we can
+        // Skip attempts to match market orders if there are no bid or ask limits
         if(spread.asksMissing && spread.bidsMissing) break;
         if(spread.asksMissing && order.side == BUY){
             continue;
