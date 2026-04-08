@@ -58,23 +58,23 @@ struct Order{
     unsigned int fill = 0;
     /// @brief Calculate the total amount of the order.
     /// @return The total amount in cents.
-    const unsigned int amt();
+    unsigned int amt() const;
 
     /// @brief Determine if the order should be treated as a market order based on the current market price.
     /// @param marketPrice 
     /// @return 
-    const bool treatAsMarket(const Spread& spread);
+    bool treatAsMarket(const Spread& spread) const;
 
     /// @brief Determine if the order should be treated as a limit order based on the current market price
     /// @param spread 
     /// @return 
-    const bool treatAsLimit(const Spread& spread);
+    bool treatAsLimit(const Spread& spread) const;
 
-    const bool fillComplete(){
+    bool fillComplete() const {
         return qty == fill;
     }
 
-    const unsigned int unfilled(){
+    unsigned int unfilled() const {
         // A bit dangerous. unfilled should NEVER be negative
         return qty - fill;
     }
