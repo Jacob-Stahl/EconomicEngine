@@ -12,7 +12,7 @@
 
 // TODO: consider STOPLIMITS in spread? does this create a chicken and egg problem?
 // TODO: is it worth removing canceled orders from spread?
-const Spread Matcher::getSpread(){
+const Spread Matcher::getSpread() const {
     bool bidsMissing = true;
     bool asksMissing = true;
 
@@ -55,7 +55,7 @@ const Spread Matcher::getSpread(){
     return Spread{bidsMissing, asksMissing, bid, ask};
 }
 
-const Depth Matcher::getDepth(){
+const Depth Matcher::getDepth() const{
     const int maxBinsPerSide = 300;
     Depth depth;
 
@@ -93,7 +93,7 @@ const Depth Matcher::getDepth(){
 
     return depth;
 }
-const std::unordered_map<OrdType, int> Matcher::getOrderCounts(){
+const std::unordered_map<OrdType, int> Matcher::getOrderCounts() const {
     std::unordered_map<OrdType, int> counts{
         {MARKET, 0},
         {LIMIT, 0},
@@ -200,7 +200,7 @@ void Matcher::cleanupCanceledOrders(){
     canceledOrderIds.clear();
 }
 
-bool Matcher::isCanceled(long ordId){
+bool Matcher::isCanceled(long ordId) const{
     if(canceledOrderIds.size() == 0){
         return false;
     }
@@ -212,7 +212,7 @@ bool Matcher::isCanceled(long ordId){
     return true;
 }
 
-void Matcher::dumpOrdersTo(std::vector<Order>& orders){
+void Matcher::dumpOrdersTo(std::vector<Order>& orders) const {
     
     // Add market and stop orders
     for(auto order : marketOrders){
@@ -269,7 +269,7 @@ void Matcher::pushBackLimitOrder(const Order& order){
     }
 }
 
-bool Matcher::validateOrder(const Order& order){
+bool Matcher::validateOrder(const Order& order) const{
 
     // Prevent orders with 0 or negative prices or quantities from being added to the book
     if(order.qty < 1){
@@ -542,6 +542,6 @@ TypeFilled Matcher::matchMarketAndLimit(Order& marketOrd, Order& limitOrd){
     return typeFilled;
 }
 
-const MarketBacklog Matcher::getMarketBacklog(){
+const MarketBacklog& Matcher::getMarketBacklog() const {
     return marketBacklog;
 }

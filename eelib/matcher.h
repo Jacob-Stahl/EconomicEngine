@@ -51,9 +51,9 @@ class Matcher{
         std::vector<Order> marketOrders;
         std::set<long> canceledOrderIds;
 
-        bool validateOrder(const Order& order);
+        bool validateOrder(const Order& order) const;
 
-        bool isCanceled(long ordId);
+        bool isCanceled(long ordId) const;
 
         void pushBackLimitOrder(const Order& order);
 
@@ -108,10 +108,10 @@ class Matcher{
         
         /// @brief Add all orders in the book to a vector provided by reference. They are NOT sorted by time.
         /// @param orders 
-        void dumpOrdersTo(std::vector<Order>& orders);
+        void dumpOrdersTo(std::vector<Order>& orders) const;
 
-        const Spread getSpread();
-        const Depth getDepth();
-        const MarketBacklog getMarketBacklog();
-        const std::unordered_map<OrdType, int> getOrderCounts();
+        const Spread getSpread() const;
+        const Depth getDepth() const;
+        const MarketBacklog& getMarketBacklog() const;
+        const std::unordered_map<OrdType, int> getOrderCounts() const;
 };
