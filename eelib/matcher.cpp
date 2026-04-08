@@ -134,12 +134,13 @@ void Matcher::addOrder(Order& order, bool thenMatch)
         case STOP:
             // Add qty to market backlog
             if(order.side == BUY){
+                buyMarketOrders.push_back(order);
                 marketBacklog.bidMarketQty += order.qty;
             }
             else{
+                sellMarketOrders.push_back(order);
                 marketBacklog.askMarketQty += order.qty;
             }
-            marketOrders.push_back(order);
             break;
         default:
             std::logic_error("Order type not implemented!");
@@ -158,19 +159,27 @@ void Matcher::cancelOrder(long ordId){
 }
 
 void Matcher::cleanupCanceledOrders(){
+
+    // Early return if no cancelled orderIds
     if(canceledOrderIds.empty()){
         return;
     }
 
-    std::vector<size_t> marketOrdersToRemove{};
-    marketOrdersToRemove.reserve(marketOrders.size());
-    for(size_t idx = 0; idx < marketOrders.size(); ++idx){
-        if(isCanceled(marketOrders[idx].ordId)){
-            marketOrdersToRemove.push_back(idx);
+    // Clean Markets
+    auto cleanupMarketBook = [this](auto& markets){
+        std::vector<size_t> marketOrdersToRemove{};
+        marketOrdersToRemove.reserve(markets.size());
+        for(size_t idx = 0; idx < markets.size(); ++idx){
+            if(isCanceled(markets[idx].ordId)){
+                marketOrdersToRemove.push_back(idx);
+            }
         }
-    }
-    removeIdxs<Order>(marketOrders, marketOrdersToRemove);
+        removeIdxs<Order>(markets, marketOrdersToRemove);
+    };
+    cleanupMarketBook(buyMarketOrders);
+    cleanupMarketBook(sellMarketOrders);
 
+    // Clean Limits
     auto cleanupLimitBook = [this](auto& limits){
         std::vector<unsigned short> pricesToRemove{};
 
@@ -194,9 +203,10 @@ void Matcher::cleanupCanceledOrders(){
             limits.erase(price);
         }
     };
-
     cleanupLimitBook(buyLimits);
     cleanupLimitBook(sellLimits);
+
+    // Clear all cancelled order ids
     canceledOrderIds.clear();
 }
 
@@ -214,8 +224,15 @@ bool Matcher::isCanceled(long ordId) const{
 
 void Matcher::dumpOrdersTo(std::vector<Order>& orders) const {
     
-    // Add market and stop orders
-    for(auto order : marketOrders){
+    // Add buy market and stop orders
+    for(auto order : buyMarketOrders){
+        if (!isCanceled(order.ordId)) {
+            orders.push_back(order);
+        }
+    }
+
+    // Add sell market and stop orders
+    for(auto order : sellMarketOrders){
         if (!isCanceled(order.ordId)) {
             orders.push_back(order);
         }
@@ -327,16 +344,17 @@ bool Matcher::validateOrder(const Order& order) const{
     return true;
 }
 
-void Matcher::matchOrders()
-{
-    if(marketOrders.empty()){
-        return; // Exit early if there are no market orders
+void Matcher::processBuyMarkets(Spread& spread){
+    if(buyMarketOrders.empty()){
+        return;
     }
-    std::vector<size_t> marketOrdersToRemove{};
-    Spread spread = getSpread();
+    if(spread.asksMissing){
+        return;
+    }
 
+    std::vector<size_t> marketOrdersToRemove{};
     size_t ordIdx = -1;
-    for(auto& order : marketOrders){
+    for(auto& order : buyMarketOrders){
         ordIdx++;
 
         // Ignore canceled order, and mark for removal
@@ -346,12 +364,40 @@ void Matcher::matchOrders()
             continue;
         }
 
-        // Skip attempts to match market orders if there are no bid or ask limits
-        if(spread.asksMissing && spread.bidsMissing) break;
-        if(spread.asksMissing && order.side == BUY){
+        // Leave this order alone, and move to the next if it shouldn't be treated as a market order
+        if (!order.treatAsMarket(spread)){
             continue;
-        }
-        if(spread.bidsMissing && order.side == SELL){
+        };
+
+        // No sell limits on the book to match with
+        // If there are cancelled limits on the books, we might waste cycles
+        if(sellLimits.empty()){ break; }
+
+        // Try to match with limits on the book
+        if(tryFillBuyMarket(order, spread)){
+            marketOrdersToRemove.push_back(ordIdx);
+        };
+    }
+    removeIdxs<Order>(buyMarketOrders, marketOrdersToRemove);
+}
+
+void Matcher::processSellMarkets(Spread& spread){
+    if(sellMarketOrders.empty()){
+        return;
+    }
+    if(spread.bidsMissing){
+        return;
+    }
+
+    std::vector<size_t> marketOrdersToRemove{};
+    size_t ordIdx = -1;
+    for(auto& order : sellMarketOrders){
+        ordIdx++;
+
+        // Ignore canceled order, and mark for removal
+        if(isCanceled(order.ordId)){
+            canceledOrderIds.erase(order.ordId);
+            marketOrdersToRemove.push_back(ordIdx);
             continue;
         }
 
@@ -360,32 +406,31 @@ void Matcher::matchOrders()
             continue;
         };
 
-        // Now we try to match this order
-        bool filled = false;
+        // No buy limits on the book to match with. 
+        // If there are cancelled limits on the books, we might waste cycles
+        if(buyLimits.empty()){ break; }
 
-        switch(order.side){
-            case(BUY) :
-                // No sell limits on the book to match with
-                if(spread.asksMissing){ break; }
-
-                // Try to match with limits on the book
-                filled = tryFillBuyMarket(order, spread);
-                break;   
-            case(SELL) :
-                // No buy limits on the book to match with
-                if(spread.bidsMissing){ break; }
-
-                // try to match with limits on the book
-                filled = tryFillSellMarket(order, spread);
-                break;
-        }
-        
-        if(filled){
+        // Try to match with limits on the book
+        if(tryFillSellMarket(order, spread)){
             marketOrdersToRemove.push_back(ordIdx);
-        }
+        };
     }
+    removeIdxs<Order>(sellMarketOrders, marketOrdersToRemove);
+}
 
-    removeIdxs<Order>(marketOrders, marketOrdersToRemove);
+void Matcher::matchOrders()
+{
+
+    // TODO this split might give us a huge speedup, but consider how this effects stops!
+    // Maybe just increment/decriment number of buys and sells on market book?
+    if(buyMarketOrders.empty() && sellMarketOrders.empty()){
+        return; // Exit early if there are no market orders
+    }
+    std::vector<size_t> marketOrdersToRemove{};
+    Spread spread = getSpread();
+
+    processBuyMarkets(spread);
+    processSellMarkets(spread);
 };
 
 bool Matcher::tryFillBuyMarket(Order& marketOrd, Spread& spread){

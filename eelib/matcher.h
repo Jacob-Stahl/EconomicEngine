@@ -48,7 +48,10 @@ class Matcher{
         std::map<unsigned short, std::vector<Order>> sellLimits;
         std::map<unsigned short, std::vector<Order>> buyLimits;
 
-        std::vector<Order> marketOrders;
+        // TODO: matchOrders() would benefit a lot by 
+        // spliting this into 2 BUY and SELL marketOrders vecs
+        std::vector<Order> sellMarketOrders;
+        std::vector<Order> buyMarketOrders;
         std::set<long> canceledOrderIds;
 
         bool validateOrder(const Order& order) const;
@@ -56,6 +59,9 @@ class Matcher{
         bool isCanceled(long ordId) const;
 
         void pushBackLimitOrder(const Order& order);
+
+        void processBuyMarkets(Spread& spread);
+        void processSellMarkets(Spread& spread);
 
         /// @brief Try to find matches for all orders on the book
         void matchOrders();
