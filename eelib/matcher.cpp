@@ -422,12 +422,10 @@ void Matcher::processSellMarkets(Spread& spread){
 
 void Matcher::matchOrders()
 {
-
-    // TODO this split might give us a huge speedup, but consider how this effects stops!
-    // Maybe just increment/decriment number of buys and sells on market book?
     if(buyMarketOrders.empty() && sellMarketOrders.empty()){
         return; // Exit early if there are no market orders
     }
+    
     std::vector<size_t> marketOrdersToRemove{};
     Spread spread = getSpread();
 
