@@ -11,7 +11,6 @@
 #include <memory>
 #include <vector>
 
-
 // TODO: create AssetObservation struct with all properties, and use a single asset - AssetObservation map
 struct Observation{
     tick time;

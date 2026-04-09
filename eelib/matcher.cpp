@@ -369,14 +369,15 @@ void Matcher::processBuyMarkets(Spread& spread){
             continue;
         };
 
-        // No sell limits on the book to match with
-        // If there are cancelled limits on the books, we might waste cycles
-        if(sellLimits.empty()){ break; }
-
         // Try to match with limits on the book
         if(tryFillBuyMarket(order, spread)){
             marketOrdersToRemove.push_back(ordIdx);
-        };
+        }
+        else
+        {
+            // If this market order is not filled, neither will the rest.
+            break;
+        }
     }
     removeIdxs<Order>(buyMarketOrders, marketOrdersToRemove);
 }
@@ -406,14 +407,15 @@ void Matcher::processSellMarkets(Spread& spread){
             continue;
         };
 
-        // No buy limits on the book to match with. 
-        // If there are cancelled limits on the books, we might waste cycles
-        if(buyLimits.empty()){ break; }
-
         // Try to match with limits on the book
         if(tryFillSellMarket(order, spread)){
             marketOrdersToRemove.push_back(ordIdx);
-        };
+        }
+        else
+        {
+            // If this market order is not filled, neither will the rest.
+            break;
+        }
     }
     removeIdxs<Order>(sellMarketOrders, marketOrdersToRemove);
 }
