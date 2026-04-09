@@ -60,8 +60,8 @@ class Matcher{
 
         void pushBackLimitOrder(const Order& order);
 
-        void processBuyMarkets(Spread& spread);
-        void processSellMarkets(Spread& spread);
+        template<typename FillFn>
+        void processMarkets(std::vector<Order>& orders, Spread& spread, FillFn tryFill);
 
         /// @brief Try to find matches for all orders on the book
         void matchOrders();

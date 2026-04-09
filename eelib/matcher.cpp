@@ -344,10 +344,11 @@ bool Matcher::validateOrder(const Order& order) const{
     return true;
 }
 
-void Matcher::processBuyMarkets(Spread& spread){
+template<typename FillFn>
+void Matcher::processMarkets(std::vector<Order>& orders, Spread& spread, FillFn tryFill){
     std::vector<size_t> marketOrdersToRemove{};
     size_t ordIdx = -1;
-    for(auto& order : buyMarketOrders){
+    for(auto& order : orders){
         ordIdx++;
 
         // Ignore canceled order, and mark for removal
@@ -363,7 +364,7 @@ void Matcher::processBuyMarkets(Spread& spread){
         };
 
         // Try to match with limits on the book
-        if(tryFillBuyMarket(order, spread)){
+        if(tryFill(order, spread)){
             marketOrdersToRemove.push_back(ordIdx);
         }
         else
@@ -372,38 +373,7 @@ void Matcher::processBuyMarkets(Spread& spread){
             break;
         }
     }
-    removeIdxs<Order>(buyMarketOrders, marketOrdersToRemove);
-}
-
-void Matcher::processSellMarkets(Spread& spread){
-    std::vector<size_t> marketOrdersToRemove{};
-    size_t ordIdx = -1;
-    for(auto& order : sellMarketOrders){
-        ordIdx++;
-
-        // Ignore canceled order, and mark for removal
-        if(isCanceled(order.ordId)){
-            canceledOrderIds.erase(order.ordId);
-            marketOrdersToRemove.push_back(ordIdx);
-            continue;
-        }
-
-        // Leave this order alone, and move to the next if it shouldn't be treated as a market order
-        if (!order.treatAsMarket(spread)){
-            continue;
-        };
-
-        // Try to match with limits on the book
-        if(tryFillSellMarket(order, spread)){
-            marketOrdersToRemove.push_back(ordIdx);
-        }
-        else
-        {
-            // If this market order is not filled, neither will the rest.
-            break;
-        }
-    }
-    removeIdxs<Order>(sellMarketOrders, marketOrdersToRemove);
+    removeIdxs<Order>(orders, marketOrdersToRemove);
 }
 
 void Matcher::matchOrders()
@@ -416,11 +386,13 @@ void Matcher::matchOrders()
     Spread spread = getSpread();
 
     if(!buyMarketOrders.empty() && !spread.asksMissing){
-        processBuyMarkets(spread);
+        processMarkets(buyMarketOrders, spread,
+            [this](Order& o, Spread& s){ return tryFillBuyMarket(o, s); });
     }
 
     if(!sellMarketOrders.empty() && !spread.bidsMissing){
-        processSellMarkets(spread);
+        processMarkets(sellMarketOrders, spread,
+            [this](Order& o, Spread& s){ return tryFillSellMarket(o, s); });
     }
 };
 
