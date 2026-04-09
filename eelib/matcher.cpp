@@ -345,13 +345,6 @@ bool Matcher::validateOrder(const Order& order) const{
 }
 
 void Matcher::processBuyMarkets(Spread& spread){
-    if(buyMarketOrders.empty()){
-        return;
-    }
-    if(spread.asksMissing){
-        return;
-    }
-
     std::vector<size_t> marketOrdersToRemove{};
     size_t ordIdx = -1;
     for(auto& order : buyMarketOrders){
@@ -383,13 +376,6 @@ void Matcher::processBuyMarkets(Spread& spread){
 }
 
 void Matcher::processSellMarkets(Spread& spread){
-    if(sellMarketOrders.empty()){
-        return;
-    }
-    if(spread.bidsMissing){
-        return;
-    }
-
     std::vector<size_t> marketOrdersToRemove{};
     size_t ordIdx = -1;
     for(auto& order : sellMarketOrders){
@@ -425,12 +411,17 @@ void Matcher::matchOrders()
     if(buyMarketOrders.empty() && sellMarketOrders.empty()){
         return; // Exit early if there are no market orders
     }
-    
+
     std::vector<size_t> marketOrdersToRemove{};
     Spread spread = getSpread();
 
-    processBuyMarkets(spread);
-    processSellMarkets(spread);
+    if(!buyMarketOrders.empty() && !spread.asksMissing){
+        processBuyMarkets(spread);
+    }
+
+    if(!sellMarketOrders.empty() && !spread.bidsMissing){
+        processSellMarkets(spread);
+    }
 };
 
 bool Matcher::tryFillBuyMarket(Order& marketOrd, Spread& spread){
