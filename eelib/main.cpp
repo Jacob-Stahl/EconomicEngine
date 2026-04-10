@@ -272,7 +272,7 @@ void tinkerWithABM_ConsumptionEconV1(){
     
     */
 
-    Recipe refineOil({{"OIL", 16}}, {{"FUEL", 4}, {"FERTILIZER", 1}, {"PLASTIC", 2}}, 10);
+    Recipe refineOil({{"OIL", 24}}, {{"FUEL", 4}, {"FERTILIZER", 1}, {"PLASTIC", 2}}, 10);
     Recipe growFood({{"FERTILIZER", 10}, {"FUEL", 5}}, {{"FOOD", 2}}, 5);
     Recipe smeltSteel({{"COAL", 5}, {"ENERGY", 100}, {"IRON_ORE", 5}}, {{"STEEL", 4}}, 5);
     Recipe coalToEnergy({{"COAL", 20}}, {{"ENERGY", 10}}, 5);
