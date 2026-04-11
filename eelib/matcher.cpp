@@ -348,8 +348,9 @@ bool Matcher::validateOrder(const Order& order) const{
 
 template<typename FillFn>
 void Matcher::processMarkets(std::vector<Order>& orders, Spread& spread, FillFn tryFill){
-    std::vector<size_t> marketOrdersToRemove{};
     size_t ordIdx = -1;
+    
+    std::vector<size_t> marketOrdersToRemove;
     for(auto& order : orders){
         ordIdx++;
 
