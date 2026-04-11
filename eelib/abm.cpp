@@ -85,12 +85,14 @@ void ABM::simStep(){
     for(auto& agent: agents){
         auto action = agent->policy(latestObservation);
 
+        // Handle Cancellations
         for(auto doomedOrderId : action.orderIdsToCancel){
             cancelOrderWithAllMatchers(doomedOrderId);
             agent->orderCanceled(doomedOrderId, tickCounter);
             ++tickStats.ordersCanceled;
         }
 
+        // Handle Order Placements
         for(const auto& requestedOrder : action.ordersToPlace){
             Order order{requestedOrder};
             order.traderId = agent->traderId;
