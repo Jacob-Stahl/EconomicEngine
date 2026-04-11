@@ -95,7 +95,7 @@ class Matcher{
         /// @param market 
         /// @param limit 
         /// @return 
-        const TypeFilled& matchMarketAndLimit(Order& market, Order& limit);
+        TypeFilled matchMarketAndLimit(Order& market, Order& limit);
 
         Matcher() = default;
     public:
