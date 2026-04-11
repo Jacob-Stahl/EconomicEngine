@@ -43,12 +43,9 @@ class Broker{
     // traderId - Account
     std::unordered_map<long, Account> accounts;
 
-    bool canPlaceOrder(const Order& order) const;
-    void withHoldOrder(const Order& order);
-
     public:
-
-        // Place trade? can place trade?
+        bool canPlaceOrder(const Order& order) const;
+        void withholdOrder(const Order& order);
         void openAccount(long traderId);
         void closeAccount(long traderId);
         void settleMatch(const Match& match);
