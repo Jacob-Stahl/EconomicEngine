@@ -77,7 +77,6 @@ void ABM::cleanupCanceledOrdersWithAllMatchers(){
 
 void ABM::simStep(){
     // update latest observation
-    observe();
     tickStats = {};
     clearAssetVolumePerTick();
 
@@ -122,10 +121,8 @@ void ABM::simStep(){
         cleanupCanceledOrdersWithAllMatchers();
     }
 
-    // observe again to keep latestObservation up to date.
-    // TODO: fix this double work
+    // Update latestObservation for callbacks and next simStep() call
     observe();
-
     runTickCallbacks();
 };
 
