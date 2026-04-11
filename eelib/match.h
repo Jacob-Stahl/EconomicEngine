@@ -4,7 +4,6 @@
 #include "order.h"
 #include <stdexcept>
 
-// TODO time of match might be important for message ordering down stream
 struct Match{
     Order buyer;
     Order seller;
