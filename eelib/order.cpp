@@ -2,10 +2,6 @@
 #include <string>
 #include "order.h"
 
-unsigned int Order::amt() const{
-    return qty * price;
-}
-
 bool Order::treatAsMarket(const Spread& spread) const{
     switch(type){
         case MARKET:

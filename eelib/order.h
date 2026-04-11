@@ -58,9 +58,6 @@ struct Order{
     unsigned long ordNum;
     /// @brief Number of items filled. 
     unsigned int fill = 0;
-    /// @brief Calculate the total amount of the order.
-    /// @return The total amount in cents.
-    unsigned int amt() const;
 
     /// @brief Determine if the order should be treated as a market order based on the current market price.
     /// @param marketPrice 
