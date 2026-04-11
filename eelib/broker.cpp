@@ -42,3 +42,16 @@ void Broker::openAccount(long traderId) {
 void Broker::closeAccount(long traderId) {
     accounts.erase(traderId);
 }
+
+void Broker::withholdOrder(const Order& order) {
+    auto& inventory = getInventory(order.traderId);
+
+    if (order.side == BUY && order.type == LIMIT) {
+        inventory.withholdCash((long)order.qty * order.price);
+    } else if (order.side == BUY && order.type == STOPLIMIT) {
+        inventory.withholdCash((long)order.qty * order.stopPrice);
+    } else if (order.side == SELL) {
+        inventory.withholdAsset(order.asset, order.qty);
+    }
+}
+

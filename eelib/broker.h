@@ -16,6 +16,7 @@ struct AssetQty{
     long qtyWithheld = 0;
 };
 
+// TODO should there be guards against negative values? fine for now
 class Inventory {
     std::map<std::string, AssetQty> assets{};
     long cashBalance = 0;
@@ -31,6 +32,14 @@ class Inventory {
 
         long netCash() const {
             return cashBalance - cashWithheld;
+        }
+
+        void withholdCash(long amount) {
+            cashWithheld += amount;
+        }
+
+        void withholdAsset(const std::string& asset, long amount) {
+            assets[asset].qtyWithheld += amount;
         }
 };
 
