@@ -78,5 +78,3 @@ void Broker::settleMatch(const Match& match){
     sellerAssetQty.qtyWithheld -= qtyTransfered;
     buyerAssetQty.qty += qtyTransfered;
 }
-
-// TODO: settle match
