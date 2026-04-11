@@ -2,6 +2,8 @@
 
 #include <string>
 
+const int MAX_ASSET_LENGTH = 12;
+
 struct Spread{
     bool bidsMissing = true;
     bool asksMissing = true;
@@ -89,6 +91,12 @@ struct Order{
         unsigned int qty_ = 0,
         unsigned short stopPrice_ = 0
     ){
+
+        // Limit the size of asset name lengths to take advantage of small string optimization (SSO)
+        if(asset_.length() > MAX_ASSET_LENGTH){
+            std::__throw_length_error("asset exceeds maximum length");
+        }
+
         asset = asset_;
         side = side_;
         type = type_;

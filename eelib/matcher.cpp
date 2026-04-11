@@ -490,7 +490,7 @@ bool Matcher::matchLimits(Order& marketOrd, const Spread& spread,
             continue;
         }
 
-        auto typeFilled = matchMarketAndLimit(marketOrd, limitOrder);
+        auto& typeFilled = matchMarketAndLimit(marketOrd, limitOrder);
         
         if (typeFilled.limit){
             limitsToRemove.push_back(ordIdx);
@@ -506,7 +506,7 @@ bool Matcher::matchLimits(Order& marketOrd, const Spread& spread,
     return marketOrdFilled;
 }
 
-TypeFilled Matcher::matchMarketAndLimit(Order& marketOrd, Order& limitOrd){
+const TypeFilled& Matcher::matchMarketAndLimit(Order& marketOrd, Order& limitOrd){
     unsigned int limUnFill = limitOrd.unfilled();
     unsigned int markUnFill = marketOrd.unfilled();
     unsigned int fillThisMatch = 0;
