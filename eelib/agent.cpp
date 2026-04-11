@@ -122,12 +122,12 @@ Producer::Producer(long traderId_, std::string asset_, unsigned short preferedPr
 }
 
 Action Producer::policy(const Observation& observation) {
-    auto it = observation.assetSpreads.find(state->asset);
+    auto it = observation.assetObservations.find(state->asset);
 
     // If asset spread is missing, trust a new orderbook is created for new asset
     Spread assetSpread = Spread();
-    if (it != observation.assetSpreads.end()) {
-        assetSpread = it->second;
+    if (it != observation.assetObservations.end()) {
+        assetSpread = it->second.spread;
     }
 
     // Reduce production if bids are missing
@@ -193,15 +193,15 @@ long Manufacturer::costOfProd(
     long totalCost = recipe.cost;
 
     for (const auto& [asset, qty] : recipe.inputs) {
-        auto spreadIt = observation.assetSpreads.find(asset);
+        auto spreadIt = observation.assetObservations.find(asset);
         unsigned short bidPrice = 1;
 
-        if (spreadIt != observation.assetSpreads.end() && !spreadIt->second.bidsMissing) {
+        if (spreadIt != observation.assetObservations.end() && !spreadIt->second.spread.bidsMissing) {
             bidPrice = static_cast<unsigned short>(std::min<long>(
 
                 // Add +1 tp bid price. We want to out bid the other buy limits.
                 // This puts natural upward pressure on the price.
-                static_cast<long>(spreadIt->second.highestBid) + 1,
+                static_cast<long>(spreadIt->second.spread.highestBid) + 1,
                 std::numeric_limits<unsigned short>::max()));
         }
 
@@ -217,11 +217,11 @@ long Manufacturer::saleRevenue(
     long totalRevenue = 0;
 
     for (const auto& [asset, qty] : recipe.outputs) {
-        auto spreadIt = observation.assetSpreads.find(asset);
+        auto spreadIt = observation.assetObservations.find(asset);
         unsigned short salePrice = 0;
 
-        if (spreadIt != observation.assetSpreads.end() && !spreadIt->second.bidsMissing) {
-            salePrice = spreadIt->second.highestBid;
+        if (spreadIt != observation.assetObservations.end() && !spreadIt->second.spread.bidsMissing) {
+            salePrice = spreadIt->second.spread.highestBid;
         }
 
         totalRevenue += static_cast<long>(qty) * salePrice;
@@ -243,10 +243,10 @@ std::vector<Order> Manufacturer::procurementOrders(
         }
 
         unsigned short bidPrice = 1;
-        auto spreadIt = observation.assetSpreads.find(asset);
-        if (spreadIt != observation.assetSpreads.end() && !spreadIt->second.bidsMissing) {
+        auto spreadIt = observation.assetObservations.find(asset);
+        if (spreadIt != observation.assetObservations.end() && !spreadIt->second.spread.bidsMissing) {
             bidPrice = static_cast<unsigned short>(std::min<long>(
-                static_cast<long>(spreadIt->second.highestBid) + 1,
+                static_cast<long>(spreadIt->second.spread.highestBid) + 1,
                 std::numeric_limits<unsigned short>::max()));
         }
 

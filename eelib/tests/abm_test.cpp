@@ -227,7 +227,7 @@ TEST(ProducerTest, SharedStateTracksQtyPerTick) {
     Spread spread;
     spread.bidsMissing = false;
     spread.highestBid = 105;
-    observation.assetSpreads[state->asset] = spread;
+    observation.assetObservations[state->asset].spread = spread;
 
     Action action = producer.policy(observation);
 
@@ -288,7 +288,7 @@ TEST(ConsumerManagerTest, StateChangesPropagateToManagedConsumersInABM) {
     abm->simStep();
     abm->simStep();
 
-    Depth initialDepth = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    Depth initialDepth = abm->getLatestObservation().assetObservations.at("FOOD").depth;
     ASSERT_EQ(initialDepth.bidBins.size(), 1);
     EXPECT_EQ(initialDepth.bidBins[0].price, 1);
     EXPECT_EQ(initialDepth.bidBins[0].totalQty, 1);
@@ -296,21 +296,21 @@ TEST(ConsumerManagerTest, StateChangesPropagateToManagedConsumersInABM) {
     manager.changeHungerDelay(100, 0);
     abm->simStep();
 
-    Depth afterHungerDelayChange = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    Depth afterHungerDelayChange = abm->getLatestObservation().assetObservations.at("FOOD").depth;
     EXPECT_TRUE(afterHungerDelayChange.bidBins.empty());
 
     manager.changeHungerDelay(0, 0);
     manager.changeMaxPrice(3, 0);
     abm->simStep();
 
-    Depth cappedAtThree = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    Depth cappedAtThree = abm->getLatestObservation().assetObservations.at("FOOD").depth;
     ASSERT_EQ(cappedAtThree.bidBins.size(), 1);
     EXPECT_EQ(cappedAtThree.bidBins[0].price, 3);
 
     manager.changeMaxPrice(1, 0);
     abm->simStep();
 
-    Depth cappedAtOne = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    Depth cappedAtOne = abm->getLatestObservation().assetObservations.at("FOOD").depth;
     ASSERT_EQ(cappedAtOne.bidBins.size(), 1);
     EXPECT_EQ(cappedAtOne.bidBins[0].price, 1);
 }
@@ -326,7 +326,7 @@ TEST(ProducerManagerTest, StateChangesPropagateToManagedProducersInABM) {
     abm->simStep();
     abm->simStep();
 
-    Depth depthBeforeChange = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    Depth depthBeforeChange = abm->getLatestObservation().assetObservations.at("FOOD").depth;
     ASSERT_EQ(depthBeforeChange.bidBins.size(), 1);
     EXPECT_EQ(depthBeforeChange.bidBins[0].price, 100);
     EXPECT_EQ(depthBeforeChange.bidBins[0].totalQty, 1);
@@ -334,7 +334,7 @@ TEST(ProducerManagerTest, StateChangesPropagateToManagedProducersInABM) {
     manager.changePreferedPrice(50, 0);
     abm->simStep();
 
-    Depth depthAfterChange = abm->getLatestObservation().assetOrderDepths.at("FOOD");
+    Depth depthAfterChange = abm->getLatestObservation().assetObservations.at("FOOD").depth;
     EXPECT_TRUE(depthAfterChange.bidBins.empty());
 }
 
@@ -356,8 +356,8 @@ TEST_F(ABMTest, ProducerConsumerOneStep) {
     EXPECT_EQ(obs.time, tick(1));
 
     // Make sure the FOOD order book is in an expected state
-    ASSERT_TRUE(obs.assetOrderDepths.count("FOOD"));
-    Depth depth = obs.assetOrderDepths.at("FOOD");
+    ASSERT_TRUE(obs.assetObservations.count("FOOD"));
+    Depth depth = obs.assetObservations.at("FOOD").depth;
 
     // Producer (Market Sell 1) should match with one Consumer (Limit Buy 1).
     // 3 Consumers total -> 3 Bids.
@@ -472,12 +472,12 @@ TEST_F(ABMTest, RealConsumerMatchFoundResetsHungerAfterFill) {
     ASSERT_EQ(pConsumer->actions.size(), 4);
     EXPECT_TRUE(pConsumer->actions[3].orderIdsToCancel.empty());
 
-    Depth depthAfterReset = abm.getLatestObservation().assetOrderDepths.at("FOOD");
+    Depth depthAfterReset = abm.getLatestObservation().assetObservations.at("FOOD").depth;
     EXPECT_TRUE(depthAfterReset.bidBins.empty());
 
     abm.simStep();
 
-    Depth depthAfterRecovery = abm.getLatestObservation().assetOrderDepths.at("FOOD");
+    Depth depthAfterRecovery = abm.getLatestObservation().assetObservations.at("FOOD").depth;
     ASSERT_EQ(depthAfterRecovery.bidBins.size(), 1);
     EXPECT_EQ(depthAfterRecovery.bidBins[0].price, 1);
     EXPECT_EQ(depthAfterRecovery.bidBins[0].totalQty, 1);
@@ -530,7 +530,7 @@ TEST_F(ABMTest, CancellationRouting) {
 
     // Verify order is on the book
     auto obs = abm.getLatestObservation();
-    Depth depth = obs.assetOrderDepths.at("FOOD");
+    Depth depth = obs.assetObservations.at("FOOD").depth;
     ASSERT_EQ(depth.askBins.size(), 1);
     EXPECT_EQ(depth.askBins[0].totalQty, 1);
 
@@ -542,7 +542,7 @@ TEST_F(ABMTest, CancellationRouting) {
 
     // Verify order is gone from book
     obs = abm.getLatestObservation();
-    depth = obs.assetOrderDepths.at("FOOD");
+    depth = obs.assetObservations.at("FOOD").depth;
     EXPECT_TRUE(depth.askBins.empty());
 }
 
@@ -703,9 +703,8 @@ TEST_F(ABMTest, AssetVolumesPerTickAggregatesMatchedQuantityByAsset) {
 
     const auto& obs = abm.getLatestObservation();
     ASSERT_EQ(obs.time, tick(1));
-    ASSERT_EQ(obs.assetVolumesPerTick.size(), 2u);
-    EXPECT_EQ(obs.assetVolumesPerTick.at("FOOD"), 2u);
-    EXPECT_EQ(obs.assetVolumesPerTick.at("WATER"), 3u);
+    EXPECT_EQ(obs.assetObservations.at("FOOD").volumePerTick, 2u);
+    EXPECT_EQ(obs.assetObservations.at("WATER").volumePerTick, 3u);
 }
 
 TEST_F(ABMTest, AssetVolumesPerTickClearsOnNextTickWithoutMatches) {
@@ -724,7 +723,7 @@ TEST_F(ABMTest, AssetVolumesPerTickClearsOnNextTickWithoutMatches) {
     abm.simStep();
 
     const auto& firstObs = abm.getLatestObservation();
-    ASSERT_EQ(firstObs.assetVolumesPerTick.at("FOOD"), 2u);
+    ASSERT_EQ(firstObs.assetObservations.at("FOOD").volumePerTick, 2u);
 
     sellerPtr->nextAction = Action();
     buyerPtr->nextAction = Action();
@@ -732,7 +731,7 @@ TEST_F(ABMTest, AssetVolumesPerTickClearsOnNextTickWithoutMatches) {
     abm.simStep();
 
     const auto& secondObs = abm.getLatestObservation();
-    EXPECT_TRUE(secondObs.assetVolumesPerTick.empty());
+    EXPECT_EQ(secondObs.assetObservations.at("FOOD").volumePerTick, 0u);
 }
 
 TEST_F(ABMTest, AgentReceivesCorrectTickOnMatch) {
@@ -810,8 +809,8 @@ TEST_F(ABMTest, AggregateActionProcessesMultipleCancellationsAndPlacements) {
     ASSERT_EQ(agent->placedOrderIds.size(), 2);
 
     auto obs = abm.getLatestObservation();
-    ASSERT_TRUE(obs.assetOrderDepths.count("ASSET"));
-    Depth depth = obs.assetOrderDepths.at("ASSET");
+    ASSERT_TRUE(obs.assetObservations.count("ASSET"));
+    Depth depth = obs.assetObservations.at("ASSET").depth;
     ASSERT_EQ(depth.bidBins.size(), 2);
     EXPECT_EQ(depth.bidBins[0].price, 101);
     EXPECT_EQ(depth.bidBins[1].price, 100);
@@ -834,7 +833,7 @@ TEST_F(ABMTest, AggregateActionProcessesMultipleCancellationsAndPlacements) {
     ASSERT_EQ(agent->placedOrderIds.size(), 4);
 
     obs = abm.getLatestObservation();
-    depth = obs.assetOrderDepths.at("ASSET");
+    depth = obs.assetObservations.at("ASSET").depth;
     ASSERT_EQ(depth.bidBins.size(), 2);
     EXPECT_EQ(depth.bidBins[0].price, 99);
     EXPECT_EQ(depth.bidBins[0].totalQty, 1);

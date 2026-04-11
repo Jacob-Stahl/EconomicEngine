@@ -18,7 +18,7 @@ void tinkerWithABM_ConsumptionEconV1();
 void tinkerWithABM_ConsumptionEconV2();
 
 int main() {
-    benchmarkMatcher();
+    tinkerWithABM_ConsumptionEconV1();
 }
 
 
@@ -205,21 +205,16 @@ void showObservationsAndStats(const Observation& observations, const TickStats& 
               << "\n";
     std::cout << std::string(assetWidth + (priceWidth * 3) + volumeWidth + (backlogWidth * 2) + 6, '-') << "\n";
 
-    if (observations.assetSpreads.empty()) {
+    if (observations.assetObservations.empty()) {
         std::cout << "No spreads available.\n";
         std::cout.flush();
         return;
     }
 
-    for (const auto& [asset, spread] : observations.assetSpreads) {
-        auto volumeIt = observations.assetVolumesPerTick.find(asset);
-        unsigned long volume = volumeIt == observations.assetVolumesPerTick.end()
-            ? 0
-            : volumeIt->second;
-        auto backlogIt = observations.assetMarketBacklogs.find(asset);
-        MarketBacklog backlog = backlogIt == observations.assetMarketBacklogs.end()
-            ? MarketBacklog{}
-            : backlogIt->second;
+    for (const auto& [asset, ao] : observations.assetObservations) {
+        const Spread& spread = ao.spread;
+        unsigned long volume = ao.volumePerTick;
+        const MarketBacklog& backlog = ao.marketBacklog;
 
         std::cout << std::left << std::setw(assetWidth) << asset;
         std::cout << std::right;

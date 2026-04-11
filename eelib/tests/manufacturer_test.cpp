@@ -15,8 +15,8 @@ TEST(ManufacturerTest, PolicyPlacesProcurementOrdersWhenProductionIsProfitable) 
     Manufacturer manufacturer(1, state);
 
     Observation observation;
-    observation.assetSpreads["ORE"] = Spread{false, true, 4, 0};
-    observation.assetSpreads["METAL"] = Spread{false, true, 20, 0};
+    observation.assetObservations["ORE"].spread = Spread{false, true, 4, 0};
+    observation.assetObservations["METAL"].spread = Spread{false, true, 20, 0};
 
     Action action = manufacturer.policy(observation);
 
@@ -43,7 +43,7 @@ TEST(ManufacturerTest, PolicyCraftsInventoryAndPlacesSellOrdersForOutputs) {
     state->inventory.update("ORE", 4, 0, manufacturer.traderId);
 
     Observation observation;
-    observation.assetSpreads["METAL"] = Spread{false, true, 1, 0};
+    observation.assetObservations["METAL"].spread = Spread{false, true, 1, 0};
 
     Action action = manufacturer.policy(observation);
 

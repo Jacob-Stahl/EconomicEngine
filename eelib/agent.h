@@ -11,21 +11,18 @@
 #include <memory>
 #include <vector>
 
+
+struct AssetObservation{
+    Spread spread;
+    Depth depth;
+    MarketBacklog marketBacklog;
+    long volumePerTick = 0;
+};
+
 // TODO: create AssetObservation struct with all properties, and use a single asset - AssetObservation map
 struct Observation{
     tick time;
-
-    /// @brief asset - Spread
-    std::map<std::string, Spread> assetSpreads;
-
-    /// @brief asset - Depth
-    std::map<std::string, Depth> assetOrderDepths;
-
-    /// @brief asset - Volume per tick
-    std::map<std::string, unsigned long> assetVolumesPerTick;
-
-    /// @brief asset - MarketBacklog
-    std::map<std::string, MarketBacklog> assetMarketBacklogs;
+    std::map<std::string, AssetObservation> assetObservations;
 };
 
 struct Action{
