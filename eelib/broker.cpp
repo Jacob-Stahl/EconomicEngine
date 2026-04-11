@@ -11,7 +11,7 @@ Inventory& Broker::getInventory(long traderId) {
 bool Broker::canPlaceOrder(const Order& order) const{
     auto& inventory = observeInventory(order.traderId);
 
-    // TODO: BUY MARKETS are tricky, because the price is undefined.
+    // TODO: BUY MARKETS are tricky because the price is undefined.
     // Apparently this is not a trivial problem to solve
     
     if(order.side == BUY && order.type == LIMIT){
