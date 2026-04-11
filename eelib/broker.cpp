@@ -1,5 +1,13 @@
 #include "broker.h"
 
+const Inventory& Broker::observeInventory(long traderId) const {
+    return accounts.at(traderId).inventory;
+}
+
+Inventory& Broker::getInventory(long traderId) {
+    return accounts.at(traderId).inventory;
+}
+
 bool Broker::canPlaceOrder(const Order& order) const{
     auto& inventory = observeInventory(order.traderId);
 
