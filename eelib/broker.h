@@ -1,0 +1,55 @@
+#pragma once
+
+#include <vector>
+#include <unordered_map>
+#include <map>
+
+#include "order.h"
+#include "match.h"
+
+
+// Copied from agent.h
+// This will probably be the replacement
+
+struct AssetQty{
+    long qty = 0;
+    long qtyWithheld = 0;
+};
+
+class Inventory {
+    std::map<std::string, AssetQty> assets{};
+    long cashBalance = 0;
+    long cashWithheld = 0;
+
+    public:
+        Inventory() = default;
+
+        int netQty(const std::string& asset) const {
+            auto it = assets.find(asset);
+            return it == assets.end() ? 0 : (it->second.qty - it->second.qtyWithheld);
+        }
+
+        long netCash() const {
+            return cashBalance - cashWithheld;
+        }
+};
+
+struct Account{
+    long traderId = 0;
+    Inventory inventory;
+};
+
+class Broker{
+    // traderId - Account
+    std::unordered_map<long, Account> accounts;
+
+    bool canPlaceOrder(const Order& order) const;
+    void withHoldOrder(const Order& order);
+
+    public:
+
+        // Place trade? can place trade?
+        void openAccount(long traderId);
+        void closeAccount(long traderId);
+        void settleMatch(const Match& match);
+};
