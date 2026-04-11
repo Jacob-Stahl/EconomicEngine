@@ -288,13 +288,14 @@ void Matcher::pushBackLimitOrder(const Order& order){
 
 bool Matcher::validateOrder(const Order& order) const{
 
-    // Prevent orders with 0 or negative prices or quantities from being added to the book
+    // Reject orders with qty < 1
     if(order.qty < 1){
         this->notifier->notifyOrderPlacementFailed(order,
             "Can't add order with qty less than 1");
         return false;
     }
 
+    // Reject STOP and STOPLIMIT orders with stop prices < 1 
     switch (order.type)
     {
         case STOP:
@@ -307,6 +308,7 @@ bool Matcher::validateOrder(const Order& order) const{
         default:
     }
 
+    // Reject LIMITS with prices < 1
     switch (order.type)
     {
         case LIMIT:
@@ -319,7 +321,7 @@ bool Matcher::validateOrder(const Order& order) const{
         default:
     }
 
-    // Prevent irrational stop limit orders from being added to the book
+    // Reject irrational STOPLIMIT orders
     if(order.type == STOPLIMIT)
     {
         switch(order.side)
