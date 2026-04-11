@@ -510,7 +510,7 @@ TypeFilled Matcher::matchMarketAndLimit(Order& marketOrd, Order& limitOrd){
     unsigned int limUnFill = limitOrd.unfilled();
     unsigned int markUnFill = marketOrd.unfilled();
     unsigned int fillThisMatch = 0;
-    TypeFilled typeFilled = TypeFilled();
+    TypeFilled typeFilled;
 
     // Limit order can be completely filled
     if(limUnFill < markUnFill)
