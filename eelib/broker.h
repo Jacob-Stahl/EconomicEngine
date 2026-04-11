@@ -43,6 +43,9 @@ class Broker{
     // traderId - Account
     std::unordered_map<long, Account> accounts;
 
+    const Inventory& observeInventory(long traderId) const;
+    Inventory& getInventory(long traderId);
+
     public:
         bool canPlaceOrder(const Order& order) const;
         void withholdOrder(const Order& order);
