@@ -34,3 +34,11 @@ bool Broker::canPlaceOrder(const Order& order) const{
 
     return false;
 }
+
+void Broker::openAccount(long traderId) {
+    accounts.emplace(traderId, Account{traderId});
+}
+
+void Broker::closeAccount(long traderId) {
+    accounts.erase(traderId);
+}
