@@ -24,4 +24,16 @@ struct Match{
 
             qty = qty_;
         }
+
+        unsigned short cashTransfered() const{
+
+            if(buyer.type == LIMIT || buyer.type == STOPLIMIT){
+                return buyer.price * buyer.qty;
+            }
+            else if (seller.type == LIMIT || seller.type == STOPLIMIT){
+                return seller.price * seller.qty;
+            }
+            
+            throw std::logic_error("Can't determine cashTransfered with thr provided order types!");
+        }
 };

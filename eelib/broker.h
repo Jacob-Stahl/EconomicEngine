@@ -8,6 +8,10 @@
 #include "match.h"
 
 
+// TODO add broker constrained flag to Agent?
+// not all agents should have limited resources.
+// maybe some Environment class can be a source/sink for resouces.
+
 // Copied from agent.h
 // This will probably be the replacement
 
@@ -17,30 +21,31 @@ struct AssetQty{
 };
 
 // TODO should there be guards against negative values? fine for now
-class Inventory {
+struct Inventory {
     std::map<std::string, AssetQty> assets{};
     long cashBalance = 0;
     long cashWithheld = 0;
 
-    public:
-        Inventory() = default;
+    Inventory() = default;
 
-        int netQty(const std::string& asset) const {
-            auto it = assets.find(asset);
-            return it == assets.end() ? 0 : (it->second.qty - it->second.qtyWithheld);
-        }
+    int netQty(const std::string& asset) const {
+        auto it = assets.find(asset);
+        return it == assets.end() ? 0 : (it->second.qty - it->second.qtyWithheld);
+    }
 
-        long netCash() const {
-            return cashBalance - cashWithheld;
-        }
+    long netCash() const {
+        return cashBalance - cashWithheld;
+    }
 
-        void withholdCash(long amount) {
-            cashWithheld += amount;
-        }
+    void withholdCash(long amount) {
+        cashWithheld += amount;
+    }
 
-        void withholdAsset(const std::string& asset, long amount) {
-            assets[asset].qtyWithheld += amount;
-        }
+    void withholdAsset(const std::string& asset, long amount) {
+        assets[asset].qtyWithheld += amount;
+    }
+
+    AssetQty& getAssetQty(const std::string& asset);
 };
 
 struct Account{
