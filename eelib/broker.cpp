@@ -11,6 +11,8 @@ Inventory& Broker::getInventory(long traderId) {
 bool Broker::canPlaceOrder(const Order& order) const{
     auto& inventory = observeInventory(order.traderId);
 
+    // There is an assumption here that the amount withheld is always == amount transfered when the trade is matched.
+
     // TODO: BUY MARKETS are tricky because the price is undefined.
     // Apparently this is not a trivial problem to solve
     
