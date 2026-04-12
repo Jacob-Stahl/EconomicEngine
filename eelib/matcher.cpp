@@ -306,6 +306,7 @@ bool Matcher::validateOrder(const Order& order) const{
             return false;
         }
         default:
+            break;
     }
 
     // Reject LIMITS with prices < 1
@@ -319,6 +320,7 @@ bool Matcher::validateOrder(const Order& order) const{
             return false;
         }
         default:
+            break;
     }
 
     // Reject irrational STOPLIMIT orders
