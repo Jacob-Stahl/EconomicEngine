@@ -2,6 +2,8 @@
 
 #include <string>
 
+// TODO order builder
+
 const int MAX_ASSET_LENGTH = 12;
 
 struct Spread{
