@@ -36,7 +36,7 @@ struct TypeFilled{
         }
 };
 
-/// @brief Processes orders for a single symbol
+/// @brief Matches orders using FIFO algorithm
 class Matcher{
 
     private:
