@@ -58,8 +58,7 @@ void Broker::withholdOrder(const Order& order) {
 }
 
 void Broker::settleMatch(const Match& match){
-
-    // TODO: More robust to record witholdings by orderId?
+    auto& asset = match.buyer.asset; // buyer and seller will have the same asset
 
     auto& buyerInventory = getInventory(match.buyer.traderId);
     auto& sellerInventory = getInventory(match.seller.traderId);
@@ -73,8 +72,8 @@ void Broker::settleMatch(const Match& match){
     sellerInventory.cashBalance += cashTransfered;
 
     // Transfer assets
-    auto& buyerAssetQty = buyerInventory.getAssetQty(match.buyer.asset); // buyer/seller asset assumed to be the same
-    auto& sellerAssetQty = sellerInventory.getAssetQty(match.seller.asset);
+    auto& buyerAssetQty = buyerInventory.getAssetQty(asset);
+    auto& sellerAssetQty = sellerInventory.getAssetQty(asset);
 
     sellerAssetQty.qty -= qtyTransfered;
     sellerAssetQty.qtyWithheld -= qtyTransfered;
