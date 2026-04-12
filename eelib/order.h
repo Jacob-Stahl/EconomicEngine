@@ -3,6 +3,7 @@
 #include <string>
 
 // TODO order builder
+// TODO use string view for order builder somehow
 
 const int MAX_ASSET_LENGTH = 12;
 
