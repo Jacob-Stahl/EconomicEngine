@@ -13,7 +13,7 @@ struct Match{
         Match(const Order& ord1, const Order& ord2, long qty_)
         {
             if (ord1.side == ord2.side) { std::logic_error("Can't match orders on the same side!"); }
-            if (ord1.asset != ord2.asset) { std::logic_error("Can't match orders with different assets!"); }
+            if (ord1.asset != ord2.asset) { std::logic_error("Can't match orders with different assets!"); } // TODO add test for this
             if (ord1.side == BUY){
                 buyer = ord1;
                 seller = ord2;
