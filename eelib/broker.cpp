@@ -17,13 +17,13 @@ bool Broker::canPlaceOrder(const Order& order) const{
     // Apparently this is not a trivial problem to solve
     
     if(order.side == BUY && order.type == LIMIT){
-        if(inventory.netCash() >= (long)(order.qty * order.price)){
+        if(inventory.netCash() >= (long)order.qty * (long)order.price){
             return true;
         }
     }
 
     if(order.side == BUY && order.type == STOPLIMIT){
-        if(inventory.netCash() >= (long)(order.qty * order.stopPrice)){
+        if(inventory.netCash() >= (long)order.qty * (long)order.stopPrice){
             return true;
         }
     }

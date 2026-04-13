@@ -66,4 +66,7 @@ class Broker{
         void openAccount(long traderId);
         void closeAccount(long traderId);
         void settleMatch(const Match& match);
+
+        // TODO relsease witheld cancelled orders
+        void releaseWithhold();
 };
