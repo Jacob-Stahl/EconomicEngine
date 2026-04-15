@@ -433,7 +433,7 @@ bool Matcher::tryFillBuyMarket(Order& marketOrd, Spread& spread){
             continue;
         }
         spread.lowestAsk = price;
-        marketOrderFilled = matchLimits(marketOrd, spread, book);
+        marketOrderFilled = tryMatchMarketsWithLimits(marketOrd, spread, book);
 
         if(marketOrderFilled){
             break;
@@ -462,7 +462,7 @@ bool Matcher::tryFillSellMarket(Order& marketOrd, Spread& spread){
 
         spread.highestBid = price;
 
-        marketOrderFilled = matchLimits(marketOrd, spread, it->second);
+        marketOrderFilled = tryMatchMarketsWithLimits(marketOrd, spread, it->second);
         if(marketOrderFilled){
             break;
         }
@@ -501,7 +501,7 @@ void Matcher::removeLimitsByPrice(std::vector<unsigned short> limitPricesToRemov
     }
 }
 
-bool Matcher::matchLimits(Order& marketOrd, const Spread& spread, 
+bool Matcher::tryMatchMarketsWithLimits(Order& marketOrd, const Spread& spread, 
     std::vector<Order>& limitOrds){ 
     std::vector<size_t> limitsToRemove;
     bool marketOrdFilled = false;
@@ -566,7 +566,7 @@ TypeFilled Matcher::matchMarketAndLimit(Order& marketOrd, Order& limitOrd){
         marketOrd.fill = marketOrd.qty;
         typeFilled.both();
     }
-    
+
     // Subtract match qty from market backlog
     if(marketOrd.side == BUY){
         marketBacklog.bidMarketQty -= fillThisMatch;

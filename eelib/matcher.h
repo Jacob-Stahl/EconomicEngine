@@ -89,7 +89,7 @@ class Matcher{
         /// @param marketOrd 
         /// @param limitOrds 
         /// @return true if market order is filled
-        bool matchLimits(Order& marketOrd, const Spread& spread, 
+        bool tryMatchMarketsWithLimits(Order& marketOrd, const Spread& spread, 
             std::vector<Order>& limitOrds);
 
 
