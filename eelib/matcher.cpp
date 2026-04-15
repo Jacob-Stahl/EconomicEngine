@@ -419,9 +419,10 @@ inline void Matcher::processLimits(Spread& spread){
 inline bool Matcher::matchLimitsWithLimits(Spread& spread, std::vector<Order>& buys, std::vector<Order>& sells){
     // TODO
 
-    // Match until one or both sides is empty
+    // Match until one or both sides is empty,
     // Keep spread up to date
     // return true if any match was found, else false
+    // Trust prices in provided vectors are compatable!
 }
 
 template<typename FillFn>
