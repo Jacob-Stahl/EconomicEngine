@@ -60,11 +60,11 @@ class Matcher{
 
         void pushBackLimitOrder(const Order& order);
 
-        template<typename FillFn>
-        void processMarkets(std::vector<Order>& orders, Spread& spread, FillFn tryFill);
-
         /// @brief Try to find matches for all orders on the book
         void matchOrders();
+
+        template<typename FillFn>
+        void processMarkets(std::vector<Order>& orders, Spread& spread, FillFn tryFill);
 
         /// @brief Tries to fill a buy market order as much as possible. Updates fill properties in matched orders. Spread is also updated
         /// @param order 

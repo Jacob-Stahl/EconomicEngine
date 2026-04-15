@@ -374,6 +374,9 @@ void Matcher::matchOrders()
 
 };
 
+
+void 
+
 template<typename FillFn>
 void Matcher::processMarkets(std::vector<Order>& orders, Spread& spread, FillFn tryFill){
     size_t ordIdx = -1;
