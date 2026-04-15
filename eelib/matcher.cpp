@@ -391,21 +391,27 @@ inline void Matcher::processLimits(Spread& spread){
 
     // while there is no gap in the spread
     while(spread.highestBid < spread.lowestAsk){
-
-
-        //WIP
-
         while(buyIt != buyLimits.rend() && !buyIt->second.empty()){
             ++buyIt;
             spread.highestBid = buyIt->first;
+            spread.bidsMissing = buyIt != buyLimits.rend(); // Wish I had Python's walrus operator
         }
         buyLimitPricesToRemove.push_back(spread.highestBid);
 
         while(sellIt != sellLimits.end() && !sellIt->second.empty()){
             ++sellIt;
             spread.lowestAsk = sellIt->first;
+            spread.asksMissing = sellIt != sellLimits.end();
         }
         sellLimitPricesToRemove.push_back(spread.lowestAsk);
+
+        if(spread.bidsMissing || spread.asksMissing){
+            break;
+        }
+
+
+
+        // WIP
     }
 
     return;
