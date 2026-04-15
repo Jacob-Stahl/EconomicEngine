@@ -80,7 +80,7 @@ class Matcher{
 
         void processLimits(Spread& spread);
 
-        bool Matcher::matchLimitsWithLimits(Spread& spread, std::vector<Order>& buys, std::vector<Order>& sells);
+        bool matchLimitsWithLimits(Spread& spread, std::vector<Order>& buys, std::vector<Order>& sells);
 
         /// @brief Remove limit orders from book at given price
         /// @param limitPricesToRemove 

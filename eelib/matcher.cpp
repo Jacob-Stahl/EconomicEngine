@@ -380,6 +380,9 @@ void Matcher::matchOrders()
 };
 
 inline void Matcher::processLimits(Spread& spread){
+
+    // TODO have fun finding the seg fault
+
     if((spread.bidsMissing || spread.asksMissing)){
         return; // Limits on one or boths sides are missing, nothing to match
     }
@@ -408,6 +411,9 @@ inline void Matcher::processLimits(Spread& spread){
         if(spread.bidsMissing || spread.asksMissing){
             break;
         }
+
+
+        break; // prevent infinite loop while this is under construction
 
         // break if no matches are found?
         matchLimitsWithLimits(spread, buyIt->second, sellIt->second);
