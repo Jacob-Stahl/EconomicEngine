@@ -354,35 +354,39 @@ void Matcher::matchOrders()
 
     // FIRST MATCH PURE MARKETS WITH LIMITS 
     // Markets have infinite price priority
-    if(buyMarketOrders.empty() && sellMarketOrders.empty()){
+
+    bool noBuyMarkets = buyMarketOrders.empty();
+    bool noSellMarkets = sellMarketOrders.empty();
+
+    if(noBuyMarkets && noSellMarkets){
         return; // Exit early if there are no market orders
     }
 
     std::vector<size_t> marketOrdersToRemove{};
     Spread spread = getSpread();
 
-    if(!buyMarketOrders.empty() && !spread.asksMissing){
+    if(!noBuyMarkets && !spread.asksMissing){
         processMarkets(buyMarketOrders, spread,
             [this](Order& o, Spread& s){ return tryFillBuyMarket(o, s); });
     }
 
-    if(!sellMarketOrders.empty() && !spread.bidsMissing){
+    if(!noSellMarkets && !spread.bidsMissing){
         processMarkets(sellMarketOrders, spread,
             [this](Order& o, Spread& s){ return tryFillSellMarket(o, s); });
     }
 
     // THEN MATCH BUY LIMITS with SELL LIMITS
-    if((!sellLimits.empty() || !buyLimits.empty())){
-        processLimits(spread);
-    }
+    processLimits(spread);
 };
 
-void Matcher::processLimits(const Spread& spread){
+inline void Matcher::processLimits(const Spread& spread){
+    if((spread.bidsMissing || spread.asksMissing)){
+        return; // Limits on one or boths sides are missing, nothing to match
+    }
+
     if(spread.highestBid < spread.lowestAsk){
         return; // No limits have crossed the spread, nothing to match
     }
-
-    
 }
 
 template<typename FillFn>
@@ -436,6 +440,9 @@ bool Matcher::tryFillBuyMarket(Order& marketOrd, Spread& spread){
         }
     }
 
+    // If we get to this point without the market order being filled, it means there are not more limits
+    spread.asksMissing = !marketOrderFilled;
+
     removeLimitsByPrice(limitPricesToRemove, SELL);
     return marketOrderFilled;
 }
@@ -460,6 +467,9 @@ bool Matcher::tryFillSellMarket(Order& marketOrd, Spread& spread){
             break;
         }
     }
+
+    // If we get to this point without the market order being filled, it means there are not more limits
+    spread.bidsMissing = !marketOrderFilled;
 
     removeLimitsByPrice(limitPricesToRemove, BUY);
     return marketOrderFilled;
@@ -495,7 +505,6 @@ bool Matcher::matchLimits(Order& marketOrd, const Spread& spread,
     std::vector<Order>& limitOrds){ 
     std::vector<size_t> limitsToRemove;
     bool marketOrdFilled = false;
-    size_t limitOrdsSize = limitOrds.size();
 
     int ordIdx = -1;
     for(auto& limitOrder : limitOrds){
@@ -557,18 +566,16 @@ TypeFilled Matcher::matchMarketAndLimit(Order& marketOrd, Order& limitOrd){
         marketOrd.fill = marketOrd.qty;
         typeFilled.both();
     }
-
-    Match match = Match(marketOrd, limitOrd, fillThisMatch);
-
+    
     // Subtract match qty from market backlog
     if(marketOrd.side == BUY){
-        marketBacklog.bidMarketQty -= match.qty;
+        marketBacklog.bidMarketQty -= fillThisMatch;
     }
     else{
-        marketBacklog.askMarketQty -= match.qty;
+        marketBacklog.askMarketQty -= fillThisMatch;
     }
 
-    this->notifier->notifyOrderMatched(match);
+    this->notifier->notifyOrderMatched(Match(marketOrd, limitOrd, fillThisMatch));
     return typeFilled;
 }
 
