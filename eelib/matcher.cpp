@@ -351,7 +351,9 @@ bool Matcher::validateOrder(const Order& order) const{
 
 void Matcher::matchOrders()
 {
-    // FIRST MATCH PURE MARKETS WITH LIMITS
+
+    // FIRST MATCH PURE MARKETS WITH LIMITS 
+    // Markets have infinite price priority
     if(buyMarketOrders.empty() && sellMarketOrders.empty()){
         return; // Exit early if there are no market orders
     }
@@ -370,12 +372,18 @@ void Matcher::matchOrders()
     }
 
     // THEN MATCH BUY LIMITS with SELL LIMITS
-
-
+    if((!sellLimits.empty() || !buyLimits.empty())){
+        processLimits(spread);
+    }
 };
 
+void Matcher::processLimits(const Spread& spread){
+    if(spread.highestBid < spread.lowestAsk){
+        return; // No limits have crossed the spread, nothing to match
+    }
 
-void 
+    
+}
 
 template<typename FillFn>
 void Matcher::processMarkets(std::vector<Order>& orders, Spread& spread, FillFn tryFill){

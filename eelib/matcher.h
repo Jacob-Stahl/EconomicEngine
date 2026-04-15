@@ -78,6 +78,8 @@ class Matcher{
         /// @return true if filled completely
         bool tryFillSellMarket(Order& order, Spread& spread);
 
+        void processLimits(const Spread& spread);
+
         /// @brief Remove limit orders from book at given price
         /// @param limitPricesToRemove 
         /// @param side 
