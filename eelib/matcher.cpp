@@ -409,12 +409,19 @@ inline void Matcher::processLimits(Spread& spread){
             break;
         }
 
-
-
-        // WIP
+        // break if no matches are found?
+        matchLimitsWithLimits(spread, buyIt->second, sellIt->second);
     }
 
     return;
+}
+
+inline bool Matcher::matchLimitsWithLimits(Spread& spread, std::vector<Order>& buys, std::vector<Order>& sells){
+    // TODO
+
+    // Match until one or both sides is empty
+    // Keep spread up to date
+    // return true if any match was found, else false
 }
 
 template<typename FillFn>
@@ -461,7 +468,7 @@ bool Matcher::tryFillBuyMarket(Order& marketOrd, Spread& spread){
             continue;
         }
         spread.lowestAsk = price;
-        marketOrderFilled = tryMatchMarketsWithLimits(marketOrd, spread, book);
+        marketOrderFilled = tryMatchMarketWithLimits(marketOrd, spread, book);
 
         if(marketOrderFilled){
             break;
@@ -490,7 +497,7 @@ bool Matcher::tryFillSellMarket(Order& marketOrd, Spread& spread){
 
         spread.highestBid = price;
 
-        marketOrderFilled = tryMatchMarketsWithLimits(marketOrd, spread, it->second);
+        marketOrderFilled = tryMatchMarketWithLimits(marketOrd, spread, it->second);
         if(marketOrderFilled){
             break;
         }
@@ -529,7 +536,7 @@ void Matcher::removeLimitsByPrice(std::vector<unsigned short> limitPricesToRemov
     }
 }
 
-bool Matcher::tryMatchMarketsWithLimits(Order& marketOrd, const Spread& spread, 
+bool Matcher::tryMatchMarketWithLimits(Order& marketOrd, const Spread& spread, 
     std::vector<Order>& limitOrds){ 
     std::vector<size_t> limitsToRemove;
     bool marketOrdFilled = false;
