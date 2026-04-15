@@ -348,6 +348,32 @@ bool Matcher::validateOrder(const Order& order) const{
     return true;
 }
 
+
+void Matcher::matchOrders()
+{
+    // FIRST MATCH PURE MARKETS WITH LIMITS
+    if(buyMarketOrders.empty() && sellMarketOrders.empty()){
+        return; // Exit early if there are no market orders
+    }
+
+    std::vector<size_t> marketOrdersToRemove{};
+    Spread spread = getSpread();
+
+    if(!buyMarketOrders.empty() && !spread.asksMissing){
+        processMarkets(buyMarketOrders, spread,
+            [this](Order& o, Spread& s){ return tryFillBuyMarket(o, s); });
+    }
+
+    if(!sellMarketOrders.empty() && !spread.bidsMissing){
+        processMarkets(sellMarketOrders, spread,
+            [this](Order& o, Spread& s){ return tryFillSellMarket(o, s); });
+    }
+
+    // THEN MATCH BUY LIMITS with SELL LIMITS
+
+
+};
+
 template<typename FillFn>
 void Matcher::processMarkets(std::vector<Order>& orders, Spread& spread, FillFn tryFill){
     size_t ordIdx = -1;
@@ -380,26 +406,6 @@ void Matcher::processMarkets(std::vector<Order>& orders, Spread& spread, FillFn 
     }
     removeIdxs<Order>(orders, marketOrdersToRemove);
 }
-
-void Matcher::matchOrders()
-{
-    if(buyMarketOrders.empty() && sellMarketOrders.empty()){
-        return; // Exit early if there are no market orders
-    }
-
-    std::vector<size_t> marketOrdersToRemove{};
-    Spread spread = getSpread();
-
-    if(!buyMarketOrders.empty() && !spread.asksMissing){
-        processMarkets(buyMarketOrders, spread,
-            [this](Order& o, Spread& s){ return tryFillBuyMarket(o, s); });
-    }
-
-    if(!sellMarketOrders.empty() && !spread.bidsMissing){
-        processMarkets(sellMarketOrders, spread,
-            [this](Order& o, Spread& s){ return tryFillSellMarket(o, s); });
-    }
-};
 
 bool Matcher::tryFillBuyMarket(Order& marketOrd, Spread& spread){
     bool marketOrderFilled = false;
