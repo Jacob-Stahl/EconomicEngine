@@ -379,14 +379,36 @@ void Matcher::matchOrders()
     processLimits(spread);
 };
 
-inline void Matcher::processLimits(const Spread& spread){
+inline void Matcher::processLimits(Spread& spread){
     if((spread.bidsMissing || spread.asksMissing)){
         return; // Limits on one or boths sides are missing, nothing to match
     }
 
-    if(spread.highestBid < spread.lowestAsk){
-        return; // No limits have crossed the spread, nothing to match
+    std::vector<unsigned short> buyLimitPricesToRemove{};
+    std::vector<unsigned short> sellLimitPricesToRemove{};
+    auto buyIt = buyLimits.rbegin();
+    auto sellIt = sellLimits.begin();
+
+    // while there is no gap in the spread
+    while(spread.highestBid < spread.lowestAsk){
+
+
+        //WIP
+
+        while(buyIt != buyLimits.rend() && !buyIt->second.empty()){
+            ++buyIt;
+            spread.highestBid = buyIt->first;
+        }
+        buyLimitPricesToRemove.push_back(spread.highestBid);
+
+        while(sellIt != sellLimits.end() && !sellIt->second.empty()){
+            ++sellIt;
+            spread.lowestAsk = sellIt->first;
+        }
+        sellLimitPricesToRemove.push_back(spread.lowestAsk);
     }
+
+    return;
 }
 
 template<typename FillFn>
