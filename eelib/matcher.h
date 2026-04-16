@@ -36,10 +36,13 @@ struct TypeFilled{
         }
 };
 
-struct SideFilled{
-    bool both = false;
-    Side side;
+enum class SideFilled{
+    BUY,
+    SELL,
+    BOTH
 };
+
+//TODO: the method names have become confusing fix this
 
 /// @brief Matches orders using FIFO algorithm
 class Matcher{
@@ -85,7 +88,9 @@ class Matcher{
 
         void processLimits(Spread& spread);
 
-        bool matchLimitsWithLimits(Spread& spread, std::vector<Order>& buys, std::vector<Order>& sells);
+        bool matchLimitsWithLimits(
+            const Spread& spread,
+            std::vector<Order>& buys, std::vector<Order>& sells);
 
         /// @brief match 2 limit orders. returns the side that was 
         /// @param spread 

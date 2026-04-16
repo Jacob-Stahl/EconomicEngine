@@ -423,33 +423,72 @@ inline void Matcher::processLimits(Spread& spread){
 }
 
 inline bool Matcher::matchLimitsWithLimits(
-    Spread& spread, std::vector<Order>& buys, std::vector<Order>& sells){
-    // TODO
-
+    const Spread& spread,
+    std::vector<Order>& buys, 
+    std::vector<Order>& sells){
+    
     // Match until one or both sides is empty,
-    // Keep spread up to date
     // return true if any match was found, else false
     // Trust prices in provided vectors are compatable!
-
-    if(buys.empty() || sells.empty()){
-        return false;
-    }
 
     size_t buyIdx = 0;
     size_t sellIdx = 0;
     bool anyMatchFound = false;
+    std::vector<size_t> buysToRemove;
+    std::vector<size_t> sellsToRemove;
 
-    for(buyIdx; buyIdx < buys.size(); buyIdx){
+    while(buyIdx < buys.size() && sellIdx < sells.size()){
+        Order& buyOrd = buys[buyIdx];
+        Order& sellOrd = sells[sellIdx];
 
+        // Skip cancelled orders, and mark for removal
+        if(isCanceled(buyOrd.ordId)){
+            buysToRemove.push_back(buyIdx);
+            buyIdx++;
+            continue;
+        }
+        if(isCanceled(sellOrd.ordId)){
+            sellsToRemove.push_back(sellIdx);
+            sellIdx++;
+            continue;
+        }
 
+        // Skip orders that should not be treated as limits at this spread
+        if(!buyOrd.treatAsLimit(spread)){
+            buyIdx++;
+            continue;
+        }
+        if(!sellOrd.treatAsLimit(spread)){
+            sellIdx++;
+            continue;
+        }
 
-
+        // Match both orders
+        auto sideFilled = matchLimits(buyOrd, sellOrd);
+        switch(sideFilled){
+            case SideFilled::BUY:
+                buysToRemove.push_back(buyIdx);
+                ++buyIdx;
+                break;
+            case SideFilled::SELL:
+                sellsToRemove.push_back(sellIdx);
+                ++sellIdx;
+                break;
+            case SideFilled::BOTH:
+                buysToRemove.push_back(buyIdx);
+                sellsToRemove.push_back(sellIdx);
+                ++buyIdx;
+                ++sellIdx;
+                break;
+            default:
+                break;
+        }
         anyMatchFound = true;
     }
 
-
+    removeIdxs<Order>(buys, buysToRemove);
+    removeIdxs<Order>(sells, sellsToRemove);
     return anyMatchFound;
-    
 };
 
 inline SideFilled Matcher::matchLimits(Order& buy, Order& sell){
@@ -457,22 +496,22 @@ inline SideFilled Matcher::matchLimits(Order& buy, Order& sell){
     unsigned int buyUnfilled = buy.unfilled();
     unsigned int sellUnfilled = sell.unfilled();
     unsigned int fillThisMatch = std::min(buyUnfilled, sellUnfilled);
-    SideFilled sideFilled;
+    SideFilled sideFilled{};
 
     if(buyUnfilled < sellUnfilled){
         buy.fill = buy.qty;
         sell.fill = sell.fill + fillThisMatch;
-        sideFilled.side = BUY;
+        sideFilled = SideFilled::BUY;
     }
     else if (buyUnfilled > sellUnfilled){
         buy.fill = buy.fill + fillThisMatch;
         sell.fill = sell.qty;
-        sideFilled.side = SELL;
+        sideFilled = SideFilled::SELL;
     }
     else if (buyUnfilled == sellUnfilled){
         buy.fill = buy.qty;
         sell.fill = sell.qty;
-        sideFilled.both = true;
+        sideFilled = SideFilled::BOTH;
     }
 
     this->notifier->notifyOrderMatched(Match(buy, sell, fillThisMatch));
