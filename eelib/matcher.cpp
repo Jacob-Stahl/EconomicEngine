@@ -376,8 +376,6 @@ void Matcher::matchOrders()
     }
 
     // THEN MATCH BUY LIMITS with SELL LIMITS
-    
-    return; // Early return while this is under construction
     processLimits(spread);
 };
 
@@ -394,24 +392,27 @@ inline void Matcher::processLimits(Spread& spread){
     auto sellIt = sellLimits.begin();
 
     // while there is no gap in the spread
-    while(spread.highestBid < spread.lowestAsk){
-        while(buyIt != buyLimits.rend() && !buyIt->second.empty()){
+    while(spread.highestBid >= spread.lowestAsk){  
+        // Walk the limits until we find buy and sell price levels that are not empty
+        while(buyIt != buyLimits.rend() && buyIt->second.empty()){
             ++buyIt;
         }
-        spread.bidsMissing = buyIt != buyLimits.rend(); // Wish I had Python's walrus operator
-        spread.highestBid = buyIt->first;
-        buyLimitPricesToRemove.push_back(spread.highestBid);
-
-        while(sellIt != sellLimits.end() && !sellIt->second.empty()){
+        while(sellIt != sellLimits.end() && sellIt->second.empty()){
             ++sellIt;
         }
-        spread.asksMissing = sellIt != sellLimits.end();
-        spread.lowestAsk = sellIt->first;
-        sellLimitPricesToRemove.push_back(spread.lowestAsk);
 
-        if(spread.bidsMissing || spread.asksMissing){
+        // Break if either side is empty
+        spread.bidsMissing = buyIt == buyLimits.rend();
+        spread.asksMissing = sellIt == sellLimits.end();
+        if(spread.asksMissing || spread.bidsMissing){
             break;
         }
+
+        spread.highestBid = buyIt->first;
+        spread.lowestAsk = sellIt->first;
+
+        buyLimitPricesToRemove.push_back(spread.highestBid);
+        sellLimitPricesToRemove.push_back(spread.lowestAsk);
 
         // break if no matches are found?
         matchLimitsWithLimits(spread, buyIt->second, sellIt->second);
