@@ -422,14 +422,62 @@ inline void Matcher::processLimits(Spread& spread){
     return;
 }
 
-inline bool Matcher::matchLimitsWithLimits(Spread& spread, std::vector<Order>& buys, std::vector<Order>& sells){
+inline bool Matcher::matchLimitsWithLimits(
+    Spread& spread, std::vector<Order>& buys, std::vector<Order>& sells){
     // TODO
 
     // Match until one or both sides is empty,
     // Keep spread up to date
     // return true if any match was found, else false
     // Trust prices in provided vectors are compatable!
-}
+
+    if(buys.empty() || sells.empty()){
+        return false;
+    }
+
+    size_t buyIdx = 0;
+    size_t sellIdx = 0;
+    bool anyMatchFound = false;
+
+    for(buyIdx; buyIdx < buys.size(); buyIdx){
+
+
+
+
+        anyMatchFound = true;
+    }
+
+
+    return anyMatchFound;
+    
+};
+
+inline SideFilled Matcher::matchLimits(Order& buy, Order& sell){
+
+    unsigned int buyUnfilled = buy.unfilled();
+    unsigned int sellUnfilled = sell.unfilled();
+    unsigned int fillThisMatch = std::min(buyUnfilled, sellUnfilled);
+    SideFilled sideFilled;
+
+    if(buyUnfilled < sellUnfilled){
+        buy.fill = buy.qty;
+        sell.fill = sell.fill + fillThisMatch;
+        sideFilled.side = BUY;
+    }
+    else if (buyUnfilled > sellUnfilled){
+        buy.fill = buy.fill + fillThisMatch;
+        sell.fill = sell.qty;
+        sideFilled.side = SELL;
+    }
+    else if (buyUnfilled == sellUnfilled){
+        buy.fill = buy.qty;
+        sell.fill = sell.qty;
+        sideFilled.both = true;
+    }
+
+    this->notifier->notifyOrderMatched(Match(buy, sell, fillThisMatch));
+    return sideFilled;
+};
 
 template<typename FillFn>
 void Matcher::processMarkets(std::vector<Order>& orders, Spread& spread, FillFn tryFill){

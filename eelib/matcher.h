@@ -36,6 +36,11 @@ struct TypeFilled{
         }
 };
 
+struct SideFilled{
+    bool both = false;
+    Side side;
+};
+
 /// @brief Matches orders using FIFO algorithm
 class Matcher{
 
@@ -81,6 +86,13 @@ class Matcher{
         void processLimits(Spread& spread);
 
         bool matchLimitsWithLimits(Spread& spread, std::vector<Order>& buys, std::vector<Order>& sells);
+
+        /// @brief match 2 limit orders. returns the side that was 
+        /// @param spread 
+        /// @param buy 
+        /// @param sell 
+        /// @return 
+        SideFilled matchLimits(Order& buy, Order& sell);
 
         /// @brief Remove limit orders from book at given price
         /// @param limitPricesToRemove 
