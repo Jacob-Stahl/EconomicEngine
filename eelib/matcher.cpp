@@ -376,11 +376,12 @@ void Matcher::matchOrders()
     }
 
     // THEN MATCH BUY LIMITS with SELL LIMITS
+    
+    return; // Early return while this is under construction
     processLimits(spread);
 };
 
 inline void Matcher::processLimits(Spread& spread){
-
     // TODO have fun finding the seg fault
 
     if((spread.bidsMissing || spread.asksMissing)){
@@ -396,24 +397,21 @@ inline void Matcher::processLimits(Spread& spread){
     while(spread.highestBid < spread.lowestAsk){
         while(buyIt != buyLimits.rend() && !buyIt->second.empty()){
             ++buyIt;
-            spread.highestBid = buyIt->first;
         }
         spread.bidsMissing = buyIt != buyLimits.rend(); // Wish I had Python's walrus operator
+        spread.highestBid = buyIt->first;
         buyLimitPricesToRemove.push_back(spread.highestBid);
 
         while(sellIt != sellLimits.end() && !sellIt->second.empty()){
             ++sellIt;
-            spread.lowestAsk = sellIt->first;
         }
         spread.asksMissing = sellIt != sellLimits.end();
+        spread.lowestAsk = sellIt->first;
         sellLimitPricesToRemove.push_back(spread.lowestAsk);
 
         if(spread.bidsMissing || spread.asksMissing){
             break;
         }
-
-
-        break; // prevent infinite loop while this is under construction
 
         // break if no matches are found?
         matchLimitsWithLimits(spread, buyIt->second, sellIt->second);
