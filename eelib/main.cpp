@@ -87,8 +87,8 @@ class OrderFactory{
             Side side = random_enum<Side, 2>();
             OrdType ordType = weighted_random_enum<OrdType>(
                 {
-                    1.0, // MARKET
-                    1.01, // LIMIT
+                    0.0, // MARKET
+                    1.0, // LIMIT
                     0.0, // STOP
                     0.0, // STOPLIMIT
                 }
