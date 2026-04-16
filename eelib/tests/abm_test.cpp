@@ -3,6 +3,7 @@
 #include "../agent.h"
 #include "../agent_manager.h"
 
+#include <algorithm>
 #include <utility>
 
 class MockAgent : public Agent {
