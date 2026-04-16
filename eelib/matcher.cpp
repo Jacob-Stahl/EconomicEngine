@@ -380,7 +380,7 @@ void Matcher::matchOrders()
 };
 
 inline void Matcher::processLimits(Spread& spread){
-    // TODO have fun finding the seg fault
+    // TODO fix failing tests. Add coverage specifically for this method
 
     if((spread.bidsMissing || spread.asksMissing)){
         return; // Limits on one or boths sides are missing, nothing to match
