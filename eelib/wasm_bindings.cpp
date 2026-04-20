@@ -53,14 +53,11 @@ EMSCRIPTEN_BINDINGS(eelib_module) {
         .field("bidBins", &Depth::bidBins)
         .field("askBins", &Depth::askBins);
 
-    value_object<MarketBacklog>("MarketBacklog")
-        .field("bidMarketQty", &MarketBacklog::bidMarketQty)
-        .field("askMarketQty", &MarketBacklog::askMarketQty);
 
     value_object<AssetObservation>("AssetObservation")
         .field("spread", &AssetObservation::spread)
         .field("depth", &AssetObservation::depth)
-        .field("marketBacklog", &AssetObservation::marketBacklog)
+        //.field("marketBacklog", &AssetObservation::marketBacklog)
         .field("volumePerTick", &AssetObservation::volumePerTick);
 
     register_map<std::string, AssetObservation>("MapStringAssetObservation");

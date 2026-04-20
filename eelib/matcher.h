@@ -10,10 +10,6 @@
 #include <stdexcept>
 #include <unordered_map>
 
-struct MarketBacklog{
-    unsigned long bidMarketQty = 0;
-    unsigned long askMarketQty = 0;
-};
 
 struct PriceBin{
     unsigned short price = 0;
@@ -41,8 +37,7 @@ class Matcher{
 
     private:
         unsigned long lastOrdNum = 0;
-        MarketBacklog marketBacklog;
-        
+
         // TODO: Research tree balancing and its effect on performance here
         //Order FIFO queues for different prices
         std::map<unsigned short, std::vector<Order>> sellLimits;
@@ -118,6 +113,5 @@ class Matcher{
 
         const Spread getSpread() const;
         const Depth getDepth() const;
-        const MarketBacklog& getMarketBacklog() const;
         const std::unordered_map<OrdType, int> getOrderCounts() const;
 };

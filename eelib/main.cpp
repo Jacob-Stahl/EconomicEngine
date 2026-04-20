@@ -214,7 +214,7 @@ void showObservationsAndStats(const Observation& observations, const TickStats& 
     for (const auto& [asset, ao] : observations.assetObservations) {
         const Spread& spread = ao.spread;
         unsigned long volume = ao.volumePerTick;
-        const MarketBacklog& backlog = ao.marketBacklog;
+        //const MarketBacklog& backlog = ao.marketBacklog;
 
         std::cout << std::left << std::setw(assetWidth) << asset;
         std::cout << std::right;
@@ -229,8 +229,8 @@ void showObservationsAndStats(const Observation& observations, const TickStats& 
         }
 
         std::cout << std::setw(volumeWidth) << volume;
-        std::cout << std::setw(backlogWidth) << backlog.bidMarketQty;
-        std::cout << std::setw(backlogWidth) << backlog.askMarketQty;
+        //std::cout << std::setw(backlogWidth) << backlog.bidMarketQty;
+        //std::cout << std::setw(backlogWidth) << backlog.askMarketQty;
 
         std::cout << "  ";
         if (spread.bidsMissing && spread.asksMissing) {

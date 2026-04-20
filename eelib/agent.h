@@ -15,7 +15,7 @@
 struct AssetObservation{
     Spread spread;
     Depth depth;
-    MarketBacklog marketBacklog;
+    //MarketBacklog marketBacklog;
     long volumePerTick = 0;
 };
 
