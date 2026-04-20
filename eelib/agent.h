@@ -220,7 +220,6 @@ struct Desire{
 
     tick ticksSinceLastConsumption = tick(0);
 
-    Desire() = default;
     float proportionToDeath() const;
 };
 

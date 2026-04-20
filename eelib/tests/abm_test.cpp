@@ -4,6 +4,7 @@
 #include "../agent_manager.h"
 
 #include <utility>
+#include <algorithm>
 
 class MockAgent : public Agent {
 public:
