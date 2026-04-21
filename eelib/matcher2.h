@@ -21,22 +21,25 @@ struct Depth{
     std::vector<PriceBin> askBins;
 };
 
-struct LimitEntry{
+struct BookEntry{
     long ordId = -1;
     unsigned int qty = 0;
 
-
-    LimitEntry(const Order& order) : ordId(order.ordId), qty(order.qty){}
+    BookEntry(const Order& order) : ordId(order.ordId), qty(order.qty){}
 };
 
 struct LimitsBin{
-    std::vector<LimitEntry> orders;
+    std::vector<BookEntry> bookEntries;
     unsigned long totalQty = 0;
 
-    void insert(const LimitEntry entry){
-        orders.push_back(entry);
+    void insert(const BookEntry entry){
+        bookEntries.push_back(entry);
         totalQty += entry.qty;
     }
+
+    // void take(BookEntry, Notifier*)
+        // match until provided book entry is full, or bin is empty
+        // notify all matches
 };
 
 class Matcher{
@@ -50,6 +53,8 @@ class Matcher{
 
     LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
     void placeLimit(const Order& order);
+    void takeSells(BookEntry& entry, int maxPrice);
+    void takeBuys(BookEntry& entry, int minPrice);
 
     public:
         // Try to fill
