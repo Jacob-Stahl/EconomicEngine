@@ -46,11 +46,10 @@ class Matcher{
     std::flat_map<int, LimitsBin> sellLimitBins;
 
     Spread spread;
-    Depth depth;
+    // depth?
 
     LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
     void placeLimit(const Order& order);
-    void updateDepthAndSpread(Side side, int price, long qtyChange);
 
     public:
         // Try to fill
