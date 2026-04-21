@@ -12,6 +12,7 @@ set(EELIB_SOURCES
 		abm.cpp
 		agent.cpp
 		agent_manager.cpp
+		matcher2.cpp
 )
 
 add_library(eelib STATIC ${EELIB_SOURCES})
