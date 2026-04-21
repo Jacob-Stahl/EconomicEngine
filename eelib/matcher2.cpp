@@ -17,24 +17,31 @@ void Matcher::placeLimit(const Order& order){
         }
 
         // Make
-        auto& buyBins = getLimitsBin(order.price, buyLimitBins);
-        buyBins.orders.push_back(entry);
+        auto& buyBin = getLimitsBin(order.price, buyLimitBins);
+        buyBin.insert(entry);
+        updateDepthAndSpread(BUY, order.price, entry.qty);
     }
     else{
         if(!spread.bidsMissing && spread.highestBid >= order.price){
             // TODO Take what we can. return remaining entry qty
         }
-        auto& sellBins = getLimitsBin(order.price, sellLimitBins);
-        sellBins.orders.push_back(entry);
+
         // Make
+        auto& sellBin = getLimitsBin(order.price, sellLimitBins);
+        sellBin.insert(entry);   
+        updateDepthAndSpread(SELL, order.price, entry.qty);
     }
 }
 
-inline LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins){
+inline LimitsBin& Matcher::getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins){
     if(bins.find(price) == bins.end()){
         LimitsBin newBin{};
         bins.emplace(price, newBin);
     }
     return bins.at(price);
 }
+
+void Matcher::updateDepthAndSpread(Side side, int price, long qtyChange){
+    // TODO
+};
 

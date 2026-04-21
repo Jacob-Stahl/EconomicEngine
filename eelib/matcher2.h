@@ -25,12 +25,18 @@ struct LimitEntry{
     long ordId = -1;
     unsigned int qty = 0;
 
-    
+
     LimitEntry(const Order& order) : ordId(order.ordId), qty(order.qty){}
 };
 
 struct LimitsBin{
     std::vector<LimitEntry> orders;
+    unsigned long totalQty = 0;
+
+    void insert(const LimitEntry entry){
+        orders.push_back(entry);
+        totalQty += entry.qty;
+    }
 };
 
 class Matcher{
@@ -42,8 +48,9 @@ class Matcher{
     Spread spread;
     Depth depth;
 
-    LimitsBin& getLimitsBin(int price, const std::flat_map<int, LimitsBin>& bins);
+    LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
     void placeLimit(const Order& order);
+    void updateDepthAndSpread(Side side, int price, long qtyChange);
 
     public:
         // Try to fill
