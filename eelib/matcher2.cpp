@@ -2,7 +2,8 @@
 
 void Matcher::placeOrder(const Order& order){
 
-    // Register Order?
+    // Register Order
+    orderRegistery.insert({order.ordId, order});
 
     if(order.type == LIMIT){
         placeLimit(order);
@@ -35,13 +36,12 @@ void Matcher::placeLimit(const Order& order){
 }
 
 inline LimitsBin& Matcher::getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins){
-    if(bins.find(price) == bins.end()){
-        LimitsBin newBin{};
-        bins.emplace(price, newBin);
-    }
-    return bins.at(price);
+    auto [it, _] = bins.try_emplace(price);
+    return it->second;
 }
 
+
+// consider using generators here: https://en.cppreference.com/cpp/coroutine/generator
 
 // TODO iterate through all price bins, 
 // take until entry is filled, or limit price is reached. 

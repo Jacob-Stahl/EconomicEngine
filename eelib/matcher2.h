@@ -28,21 +28,29 @@ struct BookEntry{
     BookEntry(const Order& order) : ordId(order.ordId), qty(order.qty){}
 };
 
-struct LimitsBin{
+class LimitsBin{
     std::vector<BookEntry> bookEntries;
     unsigned long totalQty = 0;
+    // Notifier* notifier
 
-    void insert(const BookEntry entry){
-        bookEntries.push_back(entry);
-        totalQty += entry.qty;
-    }
+    inline void notifyMatch(long giveId, long takeId);
 
-    // void take(BookEntry, Notifier*)
-        // match until provided book entry is full, or bin is empty
-        // notify all matches
+    public:
+        void insert(const BookEntry entry){
+            bookEntries.push_back(entry);
+            totalQty += entry.qty;
+        }
+
+        void take(BookEntry entry);
+
+        // void take(BookEntry, Notifier*)
+            // match until provided book entry is full, or bin is empty
+            // notify all matches
 };
 
 class Matcher{
+
+    std::unordered_map<long, Order> orderRegistery;
 
     // Limit orders by price
     std::flat_map<int, LimitsBin> buyLimitBins;
