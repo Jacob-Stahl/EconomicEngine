@@ -3,6 +3,9 @@
 #include <ostream>
 #include <type_traits>
 
+// TODO use this instead!
+//using tick = std::uint64_t;
+
 struct tick {
     using rep = unsigned long;
 
