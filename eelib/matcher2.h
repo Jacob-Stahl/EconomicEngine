@@ -1,15 +1,14 @@
 #pragma once
 
-#include "order.h"
 #include "match.h"
 #include "notifier.h"
+#include "limits_bin.h"
 #include <vector>
 #include <set>
 #include <map>
 #include <stdexcept>
 #include <unordered_map>
 #include <flat_map>
-#include <queue>
 
 struct PriceBin{
     int price = 0;
@@ -19,50 +18,6 @@ struct PriceBin{
 struct Depth{
     std::vector<PriceBin> bidBins;
     std::vector<PriceBin> askBins;
-};
-
-struct BookEntry{
-    long ordId = -1;
-    unsigned int qty = 0;
-    BookEntry(const Order& order) : ordId(order.ordId), qty(order.qty){}
-};
-
-class LimitsBin{
-    std::queue<BookEntry> entries;
-
-    // TODO: Store all stops at this price, on this side. 
-    //      matcher will place all stops when stop price is hit
-
-    unsigned long _totalQty = 0;
-    // Notifier* notifier
-
-    inline void notifyMatch(long makeId, long takeId, int transferQty);
-
-    public:
-
-        unsigned long totalQty() const {return _totalQty; }
-
-        void make(const BookEntry& makeEntry){
-            entries.push(makeEntry);
-            _totalQty += makeEntry.qty;
-        }
-
-        void take(BookEntry& takeEntry){
-            while (takeEntry.qty > 0) {
-                auto& makeEntry = entries.front();
-                int transferQty = std::min(takeEntry.qty, makeEntry.qty);
-                
-                takeEntry.qty -= transferQty;
-                makeEntry.qty -= transferQty;
-                _totalQty -= transferQty;
-
-                notifyMatch(makeEntry.ordId, takeEntry.ordId, transferQty);
-
-                if(makeEntry.qty == 0){
-                    entries.pop();
-                }
-            };
-        }
 };
 
 class Matcher{
