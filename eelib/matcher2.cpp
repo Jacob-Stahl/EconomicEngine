@@ -20,7 +20,7 @@ void Matcher::placeLimit(const Order& order){
         }
 
         auto& buyBin = getLimitsBin(order.price, buyLimitBins);
-        buyBin.insert(entry);
+        buyBin.make(entry);
     }
     else{
         if(!spread.bidsMissing && spread.highestBid >= order.price){
@@ -29,7 +29,7 @@ void Matcher::placeLimit(const Order& order){
         }
 
         auto& sellBin = getLimitsBin(order.price, sellLimitBins);
-        sellBin.insert(entry);   
+        sellBin.make(entry);   
     }
 
     // TODO notify placement?
