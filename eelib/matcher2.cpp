@@ -1,14 +1,11 @@
 #include "matcher2.h"
 
 void Matcher::placeOrder(const Order& order){
-
-    // Register Order
-    orderRegistery.insert({order.ordId, order});
+    notifier->registerOrder(order);
 
     if(order.type == LIMIT){
         placeLimit(order);
     }
-
 }
 
 void Matcher::placeLimit(const Order& order){
@@ -36,7 +33,7 @@ void Matcher::placeLimit(const Order& order){
 }
 
 inline LimitsBin& Matcher::getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins){
-    auto [it, _] = bins.try_emplace(price);
+    auto [it, _] = bins.try_emplace(price, notifier.get());
     return it->second;
 }
 

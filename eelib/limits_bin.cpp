@@ -24,5 +24,5 @@ void LimitsBin::take(BookEntry& takeEntry){
 }
 
 void LimitsBin::notifyMatch(long makeId, long takeId, int transferQty){
-    // TODO: implement notification
+    notifier->matchFound(makeId, takeId, transferQty);
 }

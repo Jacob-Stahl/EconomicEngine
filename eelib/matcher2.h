@@ -1,7 +1,6 @@
 #pragma once
 
-#include "match.h"
-#include "notifier.h"
+#include "notifier2.h"
 #include "limits_bin.h"
 #include <vector>
 #include <set>
@@ -21,24 +20,21 @@ struct Depth{
 };
 
 class Matcher{
+    private:
+        // Limit orders by price
+        std::flat_map<int, LimitsBin> buyLimitBins;
+        std::flat_map<int, LimitsBin> sellLimitBins;
 
-    std::unordered_map<long, Order> orderRegistery;
+        Spread spread;
+        // depth?
 
-    // Limit orders by price
-    std::flat_map<int, LimitsBin> buyLimitBins;
-    std::flat_map<int, LimitsBin> sellLimitBins;
-
-    Spread spread;
-    // depth?
-
-    LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
-    void placeLimit(const Order& order);
-    void takeSells(BookEntry& entry, int maxPrice);
-    void takeBuys(BookEntry& entry, int minPrice);
+        LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
+        void placeLimit(const Order& order);
+        void takeSells(BookEntry& entry, int maxPrice);
+        void takeBuys(BookEntry& entry, int minPrice);
 
     public:
-        // Try to fill
-        // Place remainder
-        // Dispatch notifications and spread/depth changes
         void placeOrder(const Order& order);
+        std::unique_ptr<Notifier> notifier;
+
 };
