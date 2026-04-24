@@ -7,11 +7,7 @@ void LimitsBin::make(const BookEntry& makeEntry){
 }
 
 void LimitsBin::take(BookEntry& takeEntry){
-    if(entries.size() == 0){
-        return;
-    }
-
-    while (takeEntry.qty > 0) {
+    while (takeEntry.qty > 0 && !entries.empty()) {
         auto& makeEntry = entries.front();
         unsigned int transferQty = std::min(takeEntry.qty, makeEntry.qty);
 
