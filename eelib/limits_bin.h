@@ -16,16 +16,16 @@ struct BookEntry{
 class LimitsBin{
     private:
         std::queue<BookEntry> entries;
-        unsigned long _totalQty = 0;
+        unsigned int _totalQty = 0;
         Notifier* notifier;
-        void notifyMatch(long makeId, long takeId, int transferQty);
+        void notifyMatch(long makeId, long takeId, unsigned int transferQty);
 
     public:
 
         /// @brief Takes raw pointer to notifier in Matcher. LimitsBin has no effect on the nofifier lifetime
         /// @param _notifier 
         LimitsBin(Notifier* _notifier): notifier(_notifier){};
-        unsigned long totalQty() const {return _totalQty; }
+        const unsigned int totalQty() const {return _totalQty; }
         void make(const BookEntry& makeEntry);
         void take(BookEntry& takeEntry);
 };

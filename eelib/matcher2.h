@@ -30,8 +30,8 @@ class Matcher{
 
         LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
         void placeLimit(const Order& order);
-        void takeSells(BookEntry& entry, int maxPrice);
-        void takeBuys(BookEntry& entry, int minPrice);
+        void takeSells(BookEntry& takeEntry, int maxPrice);
+        void takeBuys(BookEntry& takeEntry, int minPrice);
 
     public:
         void placeOrder(const Order& order);

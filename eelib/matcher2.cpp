@@ -11,24 +11,25 @@ void Matcher::placeOrder(const Order& order){
 void Matcher::placeLimit(const Order& order){
     BookEntry entry{order};
     if(order.side == BUY){
-        if(!spread.asksMissing && spread.lowestAsk >= order.price){
+        if(!spread.asksMissing && spread.lowestAsk <= order.price){
             takeSells(entry, order.price);
             if(entry.qty == 0){ return;}
         }
 
         auto& buyBin = getLimitsBin(order.price, buyLimitBins);
         buyBin.make(entry);
+        spread.highestBid = buyLimitBins.rbegin()->first;
     }
-    else{
+    else{ // SELL
         if(!spread.bidsMissing && spread.highestBid >= order.price){
             takeBuys(entry, order.price);
             if(entry.qty == 0){ return;}
         }
 
         auto& sellBin = getLimitsBin(order.price, sellLimitBins);
-        sellBin.make(entry);   
+        sellBin.make(entry);
+        spread.lowestAsk = sellLimitBins.begin()->first;
     }
-
     // TODO notify placement?
 }
 
@@ -37,17 +38,45 @@ inline LimitsBin& Matcher::getLimitsBin(int price, std::flat_map<int, LimitsBin>
     return it->second;
 }
 
+void Matcher::takeSells(BookEntry& buyOrder, int maxPrice = INT_MAX){
 
-// consider using generators here: https://en.cppreference.com/cpp/coroutine/generator
+    // Iterating flat maps is a bit different than regular maps:
+    // https://stackoverflow.com/questions/79847808/how-can-i-iterate-a-flat-map-in-a-range-based-for-loop-updating-values
+    // https://stackoverflow.com/questions/13230480/what-is-the-meaning-of-a-variable-with-type-auto
+    for(auto&& [price, bin] : sellLimitBins){
+        spread.lowestAsk = price;
 
-// TODO iterate through all price bins, 
-// take until entry is filled, or limit price is reached. 
-// update spread before return
-// market orders have unbounded limits
-void Matcher::takeSells(BookEntry& entry, int maxPrice = INT_MAX){
+        if(buyOrder.qty == 0){
+            return;
+        }
+        if(price > maxPrice){
+            return;
+        }
+        if(bin.totalQty() == 0){
+            continue;
+        }
+        bin.take(buyOrder);
+    }
 
+    spread.asksMissing = true;
 }
 
-void Matcher::takeBuys(BookEntry& entry, int minPrice = INT_MIN){
+void Matcher::takeBuys(BookEntry& sellOrder, int minPrice = INT_MIN){
+    for(auto bin = buyLimitBins.rbegin(); bin != buyLimitBins.rend(); bin++){
+        auto&& [price, limitsBin] = *bin;
+        spread.highestBid = price;
 
+        if(sellOrder.qty == 0){
+            return;
+        }
+        if(price < minPrice){
+            return;
+        }
+        if(limitsBin.totalQty() == 0){
+            continue;
+        }
+        limitsBin.take(sellOrder);
+    }
+
+    spread.bidsMissing = true;
 }

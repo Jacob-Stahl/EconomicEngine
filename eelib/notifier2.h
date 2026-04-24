@@ -13,7 +13,7 @@ class Notifier{
             orderRegistery.insert({order.ordId, order});
         }
 
-        void matchFound(long makeId, long takeId, int transferQty);
+        void matchFound(long makeId, long takeId, unsigned int transferQty);
 
     private:
         std::unordered_map<long, Order> orderRegistery;

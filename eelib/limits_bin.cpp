@@ -7,9 +7,13 @@ void LimitsBin::make(const BookEntry& makeEntry){
 }
 
 void LimitsBin::take(BookEntry& takeEntry){
+    if(entries.size() == 0){
+        return;
+    }
+
     while (takeEntry.qty > 0) {
         auto& makeEntry = entries.front();
-        int transferQty = std::min(takeEntry.qty, makeEntry.qty);
+        unsigned int transferQty = std::min(takeEntry.qty, makeEntry.qty);
 
         takeEntry.qty -= transferQty;
         makeEntry.qty -= transferQty;
@@ -23,6 +27,6 @@ void LimitsBin::take(BookEntry& takeEntry){
     };
 }
 
-void LimitsBin::notifyMatch(long makeId, long takeId, int transferQty){
+void LimitsBin::notifyMatch(long makeId, long takeId, unsigned int transferQty){
     notifier->matchFound(makeId, takeId, transferQty);
 }
