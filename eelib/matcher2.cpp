@@ -38,20 +38,22 @@ inline LimitsBin& Matcher::getLimitsBin(int price, std::flat_map<int, LimitsBin>
     return it->second;
 }
 
+// TODO work on spread updates! these are not correct yet
+
 void Matcher::takeSells(BookEntry& buyOrder, int maxPrice = INT_MAX){
 
     // Iterating flat maps is a bit different than regular maps:
     // https://stackoverflow.com/questions/79847808/how-can-i-iterate-a-flat-map-in-a-range-based-for-loop-updating-values
     // https://stackoverflow.com/questions/13230480/what-is-the-meaning-of-a-variable-with-type-auto
     for(auto&& [price, bin] : sellLimitBins){
-        spread.lowestAsk = price;
-
         if(buyOrder.qty == 0){
             return;
         }
         if(price > maxPrice){
             return;
         }
+        spread.lowestAsk = price;
+        spread.asksMissing = false;
         if(bin.totalQty() == 0){
             continue;
         }
@@ -64,14 +66,15 @@ void Matcher::takeSells(BookEntry& buyOrder, int maxPrice = INT_MAX){
 void Matcher::takeBuys(BookEntry& sellOrder, int minPrice = INT_MIN){
     for(auto bin = buyLimitBins.rbegin(); bin != buyLimitBins.rend(); bin++){
         auto&& [price, limitsBin] = *bin;
-        spread.highestBid = price;
-
         if(sellOrder.qty == 0){
             return;
         }
         if(price < minPrice){
             return;
         }
+
+        spread.highestBid = price;
+        spread.bidsMissing = false;
         if(limitsBin.totalQty() == 0){
             continue;
         }
