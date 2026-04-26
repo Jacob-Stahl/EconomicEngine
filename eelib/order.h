@@ -105,3 +105,48 @@ struct Order{
         stopPrice = stopPrice_;
     }
 };
+
+
+enum class TimeInForce{
+    /// @brief Good Til Cancelled
+    GTC,
+
+    /// @brief Immediate or Cancelled
+    IOC,
+
+    /// @brief Fill or Kill
+    FOC
+};
+
+struct Order2{
+    std::string asset;
+    long traderId;
+    long ordId;
+    Side side;
+    OrdType type;
+    TimeInForce timeInForce;
+    int price;
+    unsigned int qty;
+    int stopPrice;
+};
+
+
+class OrderBuilder{
+    Order2 order{};
+    bool typeSet = false;
+    bool assetSet = false;
+    bool traderIdSet = false;
+    bool ordIdSet = false;
+
+    public:
+        OrderBuilder& limit(Side side, int price, unsigned int qty);
+        OrderBuilder& market(Side side, unsigned int qty);
+        OrderBuilder& stop(Side side, int stopPrice, unsigned int qty);
+        OrderBuilder& stopLimit(Side side, int price, int stopPrice, unsigned int qty);
+
+        OrderBuilder& withAsset(const std::string& asset);
+        OrderBuilder& withTraderId(long traderId);
+        OrderBuilder& withOrdId(long ordId);     
+        
+        Order2 build();
+};
