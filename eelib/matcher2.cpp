@@ -79,7 +79,6 @@ void Matcher2::takeSells(BookEntry& buyOrder, int maxPrice){
     for(auto&& [price, bin] : sellLimitBins){
         if(buyOrder.qty > 0 && price <= maxPrice){
             bin.take(buyOrder); // first fill the order
-            continue;
         }
         if(bin.totalQty() == 0){
             continue; // then find a non-empty bin with the best asks
@@ -103,7 +102,7 @@ void Matcher2::takeBuys(BookEntry& sellOrder, int minPrice){
             continue;
         }
         
-        spread.bidsMissing = true;
+        spread.bidsMissing = false;
         spread.highestBid = price;
         return;
     }

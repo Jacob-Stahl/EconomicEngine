@@ -146,6 +146,38 @@ TEST_F(Matcher2Test, CancelOrder_NotMatched_StateIsCorrect){
 
     // Next 2 market orders are cancelled because there is no liquidity
     EXPECT_EQ(3, matcher.notifier->cancellations[2].ordId);
-    EXPECT_EQ(4, matcher.notifier->cancellations[3].ordId);
-    
+    EXPECT_EQ(4, matcher.notifier->cancellations[3].ordId);   
+}
+
+TEST_F(Matcher2Test, PlaceBuyAndSellLimits_SpreadCrossed_LiquidityNotDrained_StateIsCorrect){
+        // Arrange & Act
+
+    matcher.placeOrder(makeLimit(1, BUY, 100, 2));
+    matcher.placeOrder(makeLimit(2, SELL, 110, 2));
+    matcher.placeOrder(makeLimit(3, BUY, 111, 1));
+    matcher.placeOrder(makeLimit(4, SELL, 99, 1));
+
+    const Spread& spread = matcher.getSpread();
+
+    // Expect 2 matches. No cancellations expected
+    EXPECT_EQ(2, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+
+    // check spread
+    EXPECT_FALSE(spread.bidsMissing);
+    EXPECT_FALSE(spread.asksMissing);
+
+    EXPECT_EQ(100, spread.highestBid);
+    EXPECT_EQ(110, spread.lowestAsk);
+
+    // Check matchs
+    EXPECT_EQ(3, matcher.notifier->matches[0].buyer.ordId);
+    EXPECT_EQ(2, matcher.notifier->matches[0].seller.ordId);
+    EXPECT_EQ(1, matcher.notifier->matches[0].qty);
+    EXPECT_EQ(110, matcher.notifier->matches[0].price);
+
+    EXPECT_EQ(1, matcher.notifier->matches[1].buyer.ordId);
+    EXPECT_EQ(4, matcher.notifier->matches[1].seller.ordId);
+    EXPECT_EQ(1, matcher.notifier->matches[1].qty);
+    EXPECT_EQ(100, matcher.notifier->matches[1].price);
 }
