@@ -13,6 +13,7 @@ set(EELIB_SOURCES
 		agent.cpp
 		agent_manager.cpp
 		matcher2.cpp
+		notifier2.cpp
 		limits_bin.cpp
 )
 

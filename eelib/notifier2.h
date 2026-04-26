@@ -7,7 +7,7 @@
 // TODO notify filled orders
 // TODO remove filled orders from registery
 
-class Notifier{
+class Notifier2{
     public:
         void registerOrder(const Order& order){
             orderRegistery.insert({order.ordId, order});

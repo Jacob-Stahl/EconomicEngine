@@ -1,7 +1,6 @@
 #include "notifier2.h"
-#include "match.h"
 
-bool Notifier::getOrder(long ordId, Order& order) const{
+bool Notifier2::getOrder(long ordId, Order& order) const{
     auto registryItem = orderRegistery.find(ordId);
     if(registryItem == orderRegistery.end()){
         return false;
@@ -12,7 +11,7 @@ bool Notifier::getOrder(long ordId, Order& order) const{
     }
 };
 
-void Notifier::matchFound(long makeId, long takeId, unsigned int transferQty){   
+void Notifier2::matchFound(long makeId, long takeId, unsigned int transferQty){   
     Order make, take;
     getOrder(makeId, make);
     getOrder(takeId, take);
@@ -31,7 +30,7 @@ void Notifier::matchFound(long makeId, long takeId, unsigned int transferQty){
     }
 }
 
-void Notifier::cancelled(long ordId, unsigned int remainingQty){
+void Notifier2::cancelled(long ordId, unsigned int remainingQty){
     Order cancelledOrder;  
     getOrder(ordId, cancelledOrder);
     cancellations.push_back(cancelledOrder);

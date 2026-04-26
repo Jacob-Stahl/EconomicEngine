@@ -19,7 +19,7 @@ struct Depth{
     std::vector<PriceBin> askBins;
 };
 
-class Matcher{
+class Matcher2{
     private:
         // Limit orders by price
         std::flat_map<int, LimitsBin> buyLimitBins;
@@ -31,8 +31,8 @@ class Matcher{
         LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
         void placeLimit(const Order& order);
         void placeMarket(const Order& order);
-        void takeSells(BookEntry& takeEntry, int maxPrice);
-        void takeBuys(BookEntry& takeEntry, int minPrice);
+        void takeSells(BookEntry& takeEntry, int maxPrice = INT_MAX);
+        void takeBuys(BookEntry& takeEntry, int minPrice = INT_MIN);
 
     public:
         void placeOrder(const Order& order);
@@ -42,6 +42,6 @@ class Matcher{
 
         // Keep this public or use friends?
 
-        std::unique_ptr<Notifier> notifier;
+        std::unique_ptr<Notifier2> notifier;
 
 };
