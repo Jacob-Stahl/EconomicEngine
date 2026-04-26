@@ -103,6 +103,10 @@ void Matcher::cancelOrder(long ordId){
 
     if(doomedOrder.side == BUY){
         auto& bin = buyLimitBins.at(doomedOrder.price);
-        for(auto& order : bin.)
+        bin.cancel(ordId);
+    }
+    else{
+        auto& bin = sellLimitBins.at(doomedOrder.price);
+        bin.cancel(ordId);
     }
 }
