@@ -36,6 +36,7 @@ bool LimitsBin::cancel(long ordId){
     for(auto& order : entries){
         if(order.ordId == ordId){
             order.isCancelled = true;
+            _totalQty -= order.qty;
             return true;
         }
     }
