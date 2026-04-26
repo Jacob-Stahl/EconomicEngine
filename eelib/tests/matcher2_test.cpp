@@ -58,8 +58,7 @@ TEST_F(Matcher2Test, PlaceBuyAndSellLimits_NoMatch_StateIsCorrect) {
 }
 
 TEST_F(Matcher2Test, PlaceBuyAndSellLimits_SpreadCrossed_StateIsCorrect){
-        // Arrange & Act
-
+    // Arrange & Act
     matcher.placeOrder(makeLimit(1, BUY, 100, 1));
     matcher.placeOrder(makeLimit(2, SELL, 110, 1));
     matcher.placeOrder(makeLimit(3, BUY, 111, 1));
@@ -75,7 +74,7 @@ TEST_F(Matcher2Test, PlaceBuyAndSellLimits_SpreadCrossed_StateIsCorrect){
     EXPECT_TRUE(spread.bidsMissing);
     EXPECT_TRUE(spread.asksMissing);
 
-    // Check matchs
+    // Check matches
 
     EXPECT_EQ(3, matcher.notifier->matches[0].buyer.ordId);
     EXPECT_EQ(2, matcher.notifier->matches[0].seller.ordId);
@@ -89,8 +88,7 @@ TEST_F(Matcher2Test, PlaceBuyAndSellLimits_SpreadCrossed_StateIsCorrect){
 }
 
 TEST_F(Matcher2Test, PlaceBuyAndSellLimitsAndMarkets_SpreadCrossed_StateIsCorrect){
-        // Arrange & Act
-
+    // Arrange & Act
     matcher.placeOrder(makeLimit(1, BUY, 100, 1));
     matcher.placeOrder(makeLimit(2, SELL, 110, 1));
     matcher.placeOrder(makeMarket(3, BUY, 1));
@@ -106,7 +104,7 @@ TEST_F(Matcher2Test, PlaceBuyAndSellLimitsAndMarkets_SpreadCrossed_StateIsCorrec
     EXPECT_TRUE(spread.bidsMissing);
     EXPECT_TRUE(spread.asksMissing);
 
-    // Check matchs
+    // Check matches
     EXPECT_EQ(3, matcher.notifier->matches[0].buyer.ordId);
     EXPECT_EQ(2, matcher.notifier->matches[0].seller.ordId);
     EXPECT_EQ(1, matcher.notifier->matches[0].qty);
@@ -150,12 +148,11 @@ TEST_F(Matcher2Test, CancelOrder_NotMatched_StateIsCorrect){
 }
 
 TEST_F(Matcher2Test, PlaceBuyAndSellLimits_SpreadCrossed_LiquidityNotDrained_StateIsCorrect){
-        // Arrange & Act
-
+    // Arrange & Act
     matcher.placeOrder(makeLimit(1, BUY, 100, 2));
     matcher.placeOrder(makeLimit(2, SELL, 110, 2));
-    matcher.placeOrder(makeLimit(3, BUY, 111, 1));
-    matcher.placeOrder(makeLimit(4, SELL, 99, 1));
+    matcher.placeOrder(makeMarket(3, BUY, 1));
+    matcher.placeOrder(makeMarket(4, SELL, 1));
 
     const Spread& spread = matcher.getSpread();
 
@@ -170,7 +167,7 @@ TEST_F(Matcher2Test, PlaceBuyAndSellLimits_SpreadCrossed_LiquidityNotDrained_Sta
     EXPECT_EQ(100, spread.highestBid);
     EXPECT_EQ(110, spread.lowestAsk);
 
-    // Check matchs
+    // Check matches
     EXPECT_EQ(3, matcher.notifier->matches[0].buyer.ordId);
     EXPECT_EQ(2, matcher.notifier->matches[0].seller.ordId);
     EXPECT_EQ(1, matcher.notifier->matches[0].qty);
@@ -180,4 +177,78 @@ TEST_F(Matcher2Test, PlaceBuyAndSellLimits_SpreadCrossed_LiquidityNotDrained_Sta
     EXPECT_EQ(4, matcher.notifier->matches[1].seller.ordId);
     EXPECT_EQ(1, matcher.notifier->matches[1].qty);
     EXPECT_EQ(100, matcher.notifier->matches[1].price);
+}
+
+TEST_F(Matcher2Test, SpreadCrossed_PartialFill_BUY_LIMIT_PlacedOnBook_StateIsCorrect){
+    // Arrange & Act
+    matcher.placeOrder(makeLimit(1, SELL, 110, 1));
+    matcher.placeOrder(makeLimit(2, SELL, 101, 2));
+    matcher.placeOrder(makeLimit(3, SELL, 100, 2));
+
+    matcher.placeOrder(makeLimit(4, BUY, 95, 2));
+    matcher.placeOrder(makeLimit(5, BUY, 94, 2));
+    matcher.placeOrder(makeLimit(6, BUY, 90, 1));
+
+    matcher.placeOrder(makeLimit(7, BUY, 105, 5));
+
+    const Spread& spread = matcher.getSpread();
+
+    // Expect 2 matches. No cancellations expected
+    EXPECT_EQ(2, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+
+    // check spread
+    EXPECT_FALSE(spread.bidsMissing);
+    EXPECT_FALSE(spread.asksMissing);
+
+    EXPECT_EQ(105, spread.highestBid);
+    EXPECT_EQ(110, spread.lowestAsk);
+
+    // Check matches
+    EXPECT_EQ(7, matcher.notifier->matches[0].buyer.ordId);
+    EXPECT_EQ(3, matcher.notifier->matches[0].seller.ordId);
+    EXPECT_EQ(2, matcher.notifier->matches[0].qty);
+    EXPECT_EQ(100, matcher.notifier->matches[0].price);
+
+    EXPECT_EQ(7, matcher.notifier->matches[1].buyer.ordId);
+    EXPECT_EQ(2, matcher.notifier->matches[1].seller.ordId);
+    EXPECT_EQ(2, matcher.notifier->matches[1].qty);
+    EXPECT_EQ(101, matcher.notifier->matches[1].price);
+}
+
+TEST_F(Matcher2Test, SpreadCrossed_PartialFill_SELL_LIMIT_PlacedOnBook_StateIsCorrect){
+    // Arrange & Act
+    matcher.placeOrder(makeLimit(4, SELL, 105, 2));
+    matcher.placeOrder(makeLimit(5, SELL, 106, 2));
+    matcher.placeOrder(makeLimit(6, SELL, 110, 1));
+
+    matcher.placeOrder(makeLimit(1, BUY, 90, 1));
+    matcher.placeOrder(makeLimit(2, BUY, 99, 2));
+    matcher.placeOrder(makeLimit(3, BUY, 100, 2));
+
+    matcher.placeOrder(makeLimit(7, SELL, 95, 5));
+
+    const Spread& spread = matcher.getSpread();
+
+    // Expect 2 matches. No cancellations expected
+    EXPECT_EQ(2, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+
+    // check spread
+    EXPECT_FALSE(spread.bidsMissing);
+    EXPECT_FALSE(spread.asksMissing);
+
+    EXPECT_EQ(90, spread.highestBid);
+    EXPECT_EQ(95, spread.lowestAsk);
+
+    // Check matches
+    EXPECT_EQ(3, matcher.notifier->matches[0].buyer.ordId);
+    EXPECT_EQ(7, matcher.notifier->matches[0].seller.ordId);
+    EXPECT_EQ(2, matcher.notifier->matches[0].qty);
+    EXPECT_EQ(100, matcher.notifier->matches[0].price);
+
+    EXPECT_EQ(2, matcher.notifier->matches[1].buyer.ordId);
+    EXPECT_EQ(7, matcher.notifier->matches[1].seller.ordId);
+    EXPECT_EQ(2, matcher.notifier->matches[1].qty);
+    EXPECT_EQ(99, matcher.notifier->matches[1].price);
 }
