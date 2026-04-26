@@ -1,6 +1,6 @@
 #include "matcher2.h"
 
-void Matcher2::placeOrder(const Order& order){
+void Matcher2::placeOrder(const Order2& order){
     notifier->registerOrder(order);
 
     if(order.type == LIMIT){
@@ -11,7 +11,7 @@ void Matcher2::placeOrder(const Order& order){
     }
 }
 
-void Matcher2::placeLimit(const Order& order){
+void Matcher2::placeLimit(const Order2& order){
     BookEntry entry{order};
     if(order.side == BUY){
 
@@ -48,7 +48,7 @@ void Matcher2::placeLimit(const Order& order){
     // TODO notify placement?
 }
 
-void Matcher2::placeMarket(const Order& order){
+void Matcher2::placeMarket(const Order2& order){
     BookEntry entry{order};
     if(order.side == BUY){
         if(!spread.asksMissing){
@@ -112,7 +112,7 @@ void Matcher2::takeBuys(BookEntry& sellOrder, int minPrice){
 }
 
 void Matcher2::cancelOrder(long ordId){
-    Order doomedOrder;
+    Order2 doomedOrder;
     bool orderOnBook = notifier->getOrder(ordId, doomedOrder);
     if(!orderOnBook){
         return;

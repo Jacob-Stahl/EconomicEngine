@@ -11,7 +11,7 @@ protected:
         matcher.notifier = std::make_unique<Notifier2>();
     }
 
-    Order makeOrder(long ordId, Side side, OrdType type, unsigned short price, unsigned int qty) {
+    Order makeOrder(long ordId, Side side, OrdType type, unsigned short price, unsigned int qty) { 
         Order o;
         o.ordId = ordId;
         o.traderId = 1;

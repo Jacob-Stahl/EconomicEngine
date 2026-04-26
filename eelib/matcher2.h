@@ -29,13 +29,13 @@ class Matcher2{
         // depth?
 
         LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
-        void placeLimit(const Order& order);
-        void placeMarket(const Order& order);
+        void placeLimit(const Order2& order);
+        void placeMarket(const Order2& order);
         void takeSells(BookEntry& takeEntry, int maxPrice = INT_MAX);
         void takeBuys(BookEntry& takeEntry, int minPrice = INT_MIN);
 
     public:
-        void placeOrder(const Order& order);
+        void placeOrder(const Order2& order);
         void cancelOrder(long ordId);
         const Spread& getSpread() const {return spread; };
 

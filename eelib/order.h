@@ -130,7 +130,6 @@ struct Order2{
     int stopPrice;
 };
 
-
 class OrderBuilder{
     Order2 order{};
     bool typeSet = false;

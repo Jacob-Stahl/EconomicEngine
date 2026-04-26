@@ -8,7 +8,7 @@ struct BookEntry{
     long ordId = -1;
     unsigned int qty = 0;
     bool isCancelled = false;
-    BookEntry(const Order& order) : ordId(order.ordId), qty(order.qty){}
+    BookEntry(const Order2& order) : ordId(order.ordId), qty(order.qty){}
 };
 
 // TODO: Store all stops at this price, on this side. 

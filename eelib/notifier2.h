@@ -9,15 +9,15 @@
 
 class Notifier2{
     public:
-        void registerOrder(const Order& order){
+        void registerOrder(const Order2& order){
             orderRegistery.insert({order.ordId, order});
         }
 
         void matchFound(long makeId, long takeId, unsigned int transferQty);
         void cancelled(long ordId, unsigned int remainingQty);
-        bool getOrder(long ordId, Order& order) const;
+        bool getOrder(long ordId, Order2& order) const;
 
-        std::unordered_map<long, Order> orderRegistery;
-        std::vector<Match> matches;
-        std::vector<Order> cancellations;
+        std::unordered_map<long, Order2> orderRegistery;
+        std::vector<Match2> matches;
+        std::vector<Order2> cancellations;
 };
