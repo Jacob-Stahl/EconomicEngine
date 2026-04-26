@@ -31,6 +31,25 @@ void Matcher::placeLimit(const Order& order){
     // TODO notify placement?
 }
 
+void Matcher::placeMarket(const Order& order){
+    BookEntry entry{order};
+    if(order.side == BUY){
+        if(!spread.asksMissing){
+            takeSells(entry);
+            if(entry.qty == 0){ return;}
+        }
+    }
+    else{ // SELL
+        if(!spread.bidsMissing){
+            takeBuys(entry);
+            if(entry.qty == 0){ return;}
+        }
+    }
+
+    // cancel what remains of this market order
+    notifier->cancelled(entry.ordId, entry.qty);
+}
+
 inline LimitsBin& Matcher::getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins){
     auto [it, _] = bins.try_emplace(price, notifier.get());
     return it->second;
