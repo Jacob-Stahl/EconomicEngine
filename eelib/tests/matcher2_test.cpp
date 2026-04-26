@@ -11,30 +11,32 @@ protected:
         matcher.notifier = std::make_unique<Notifier2>();
     }
 
-    Order makeOrder(long ordId, Side side, OrdType type, unsigned short price, unsigned int qty) { 
-        Order o;
-        o.ordId = ordId;
-        o.traderId = 1;
-        o.side = side;
-        o.price = price;
-        o.qty = qty;
-        o.type = type;
-        o.asset = "TEST";
-        return o;
+    Order2 makeLimit(long ordId, Side side, int price, unsigned int qty) {
+        return OrderBuilder()
+            .limit(side, price, qty)
+            .withAsset("TEST")
+            .withTraderId(1)
+            .withOrdId(ordId)
+            .build();
+    }
+
+    Order2 makeMarket(long ordId, Side side, unsigned int qty) {
+        return OrderBuilder()
+            .market(side, qty)
+            .withAsset("TEST")
+            .withTraderId(1)
+            .withOrdId(ordId)
+            .build();
     }
 };
 
 TEST_F(Matcher2Test, PlaceBuyAndSellLimits_NoMatch_StateIsCorrect) {
     // Arrange & Act
 
-    // BUY LIMIT 100 1
-    matcher.placeOrder(makeOrder(1, BUY, LIMIT, 100, 1));
-    // SELL LIMIT 110 1
-    matcher.placeOrder(makeOrder(2, SELL, LIMIT, 110, 1));
-    // BUY LIMIT 90 1
-    matcher.placeOrder(makeOrder(3, BUY, LIMIT, 90, 1));
-    // SELL LIMIT 120 1
-    matcher.placeOrder(makeOrder(4, SELL, LIMIT, 120, 1));
+    matcher.placeOrder(makeLimit(1, BUY, 100, 1));
+    matcher.placeOrder(makeLimit(2, SELL, 110, 1));
+    matcher.placeOrder(makeLimit(3, BUY, 90, 1));
+    matcher.placeOrder(makeLimit(4, SELL, 120, 1));
 
 
     const Spread& spread = matcher.getSpread();
@@ -58,14 +60,10 @@ TEST_F(Matcher2Test, PlaceBuyAndSellLimits_NoMatch_StateIsCorrect) {
 TEST_F(Matcher2Test, PlaceBuyAndSellLimits_SpreadCrossed_StateIsCorrect){
         // Arrange & Act
 
-    // BUY LIMIT 100 1
-    matcher.placeOrder(makeOrder(1, BUY, LIMIT, 100, 1));
-    // SELL LIMIT 110 1
-    matcher.placeOrder(makeOrder(2, SELL, LIMIT, 110, 1));
-    // BUY LIMIT 111 1
-    matcher.placeOrder(makeOrder(3, BUY, LIMIT, 111, 1));
-    // SELL LIMIT 99 1
-    matcher.placeOrder(makeOrder(4, SELL, LIMIT, 99, 1));
+    matcher.placeOrder(makeLimit(1, BUY, 100, 1));
+    matcher.placeOrder(makeLimit(2, SELL, 110, 1));
+    matcher.placeOrder(makeLimit(3, BUY, 111, 1));
+    matcher.placeOrder(makeLimit(4, SELL, 99, 1));
 
     const Spread& spread = matcher.getSpread();
 
@@ -93,14 +91,10 @@ TEST_F(Matcher2Test, PlaceBuyAndSellLimits_SpreadCrossed_StateIsCorrect){
 TEST_F(Matcher2Test, PlaceBuyAndSellLimitsAndMarkets_SpreadCrossed_StateIsCorrect){
         // Arrange & Act
 
-    // BUY LIMIT 100 1
-    matcher.placeOrder(makeOrder(1, BUY, LIMIT, 100, 1));
-    // SELL LIMIT 110 1
-    matcher.placeOrder(makeOrder(2, SELL, LIMIT, 110, 1));
-    // BUY LIMIT 111 1
-    matcher.placeOrder(makeOrder(3, BUY, MARKET, 0, 1));
-    // SELL LIMIT 99 1
-    matcher.placeOrder(makeOrder(4, SELL, MARKET, 0, 1));
+    matcher.placeOrder(makeLimit(1, BUY, 100, 1));
+    matcher.placeOrder(makeLimit(2, SELL, 110, 1));
+    matcher.placeOrder(makeMarket(3, BUY, 1));
+    matcher.placeOrder(makeMarket(4, SELL, 1));
 
     const Spread& spread = matcher.getSpread();
 
@@ -125,19 +119,15 @@ TEST_F(Matcher2Test, PlaceBuyAndSellLimitsAndMarkets_SpreadCrossed_StateIsCorrec
 }
 
 TEST_F(Matcher2Test, CancelOrder_NotMatched_StateIsCorrect){
-    // BUY LIMIT 100 1
-    matcher.placeOrder(makeOrder(1, BUY, LIMIT, 100, 1));
-    // SELL LIMIT 110 1
-    matcher.placeOrder(makeOrder(2, SELL, LIMIT, 110, 1));
+    matcher.placeOrder(makeLimit(1, BUY, 100, 1));
+    matcher.placeOrder(makeLimit(2, SELL, 110, 1));
 
     // Cancel 2 then 1
     matcher.cancelOrder(2);
     matcher.cancelOrder(1);
 
-    // BUY LIMIT 111 1
-    matcher.placeOrder(makeOrder(3, BUY, MARKET, 0, 1));
-    // SELL LIMIT 99 1
-    matcher.placeOrder(makeOrder(4, SELL, MARKET, 0, 1));
+    matcher.placeOrder(makeMarket(3, BUY, 1));
+    matcher.placeOrder(makeMarket(4, SELL, 1));
 
     const Spread& spread = matcher.getSpread();
 
