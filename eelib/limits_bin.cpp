@@ -2,25 +2,45 @@
 #include <algorithm>
 
 void LimitsBin::make(const BookEntry& makeEntry){
-    entries.push(makeEntry);
+    entries.push_back(makeEntry);
     _totalQty += makeEntry.qty;
 }
 
 void LimitsBin::take(BookEntry& takeEntry){
     while (takeEntry.qty > 0 && !entries.empty()) {
         auto& makeEntry = entries.front();
-        unsigned int transferQty = std::min(takeEntry.qty, makeEntry.qty);
 
+        // Skip and remove cancelled orders;
+        if(makeEntry.isCancelled){
+            entries.pop_front();
+            continue;
+        }
+
+        // transfer matching qty
+        unsigned int transferQty = std::min(takeEntry.qty, makeEntry.qty);
         takeEntry.qty -= transferQty;
         makeEntry.qty -= transferQty;
         _totalQty -= transferQty;
 
+        // send match notification
         notifyMatch(makeEntry.ordId, takeEntry.ordId, transferQty);
 
+        // remove order on book if its empty
         if(makeEntry.qty == 0){
-            entries.pop();
+            entries.pop_front();
         }
     };
+}
+
+bool LimitsBin::cancel(long ordId){
+    for(auto& order : entries){
+        if(order.ordId == ordId){
+            order.isCancelled = true;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void LimitsBin::notifyMatch(long makeId, long takeId, unsigned int transferQty){

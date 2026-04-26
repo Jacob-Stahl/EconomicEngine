@@ -36,6 +36,11 @@ class Matcher{
 
     public:
         void placeOrder(const Order& order);
+        void cancelOrder(long ordId);
+
+
+        // Keep this public or use friends?
+
         std::unique_ptr<Notifier> notifier;
 
 };

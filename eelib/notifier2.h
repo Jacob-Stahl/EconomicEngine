@@ -15,11 +15,10 @@ class Notifier{
 
         void matchFound(long makeId, long takeId, unsigned int transferQty);
         void cancelled(long ordId, unsigned int remainingQty);
+        bool getOrder(long ordId, Order& order) const;
 
     private:
         std::unordered_map<long, Order> orderRegistery;
         std::vector<Match> matches;
         std::vector<Order> cancellations;
-
-        bool Notifier::getOrder(long ordId, Order& order) const;
 };

@@ -7,6 +7,7 @@
 struct BookEntry{
     long ordId = -1;
     unsigned int qty = 0;
+    bool isCancelled = false;
     BookEntry(const Order& order) : ordId(order.ordId), qty(order.qty){}
 };
 
@@ -15,7 +16,7 @@ struct BookEntry{
 
 class LimitsBin{
     private:
-        std::queue<BookEntry> entries;
+        std::deque<BookEntry> entries;
         unsigned int _totalQty = 0;
         Notifier* notifier;
         void notifyMatch(long makeId, long takeId, unsigned int transferQty);
@@ -28,4 +29,5 @@ class LimitsBin{
         const unsigned int totalQty() const {return _totalQty; }
         void make(const BookEntry& makeEntry);
         void take(BookEntry& takeEntry);
+        bool cancel(long ordId);
 };

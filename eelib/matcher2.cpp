@@ -93,3 +93,16 @@ void Matcher::takeBuys(BookEntry& sellOrder, int minPrice = INT_MIN){
 
     spread.bidsMissing = true;
 }
+
+void Matcher::cancelOrder(long ordId){
+    Order doomedOrder;
+    bool orderOnBook = notifier->getOrder(ordId, doomedOrder);
+    if(!orderOnBook){
+        return;
+    }
+
+    if(doomedOrder.side == BUY){
+        auto& bin = buyLimitBins.at(doomedOrder.price);
+        for(auto& order : bin.)
+    }
+}
