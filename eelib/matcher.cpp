@@ -539,7 +539,7 @@ TypeFilled Matcher::matchMarketAndLimit(Order& marketOrd, Order& limitOrd){
         typeFilled.both();
     }
 
-    Match match = Match(marketOrd, limitOrd, fillThisMatch);
+    Match match = Match(marketOrd, limitOrd, fillThisMatch, limitOrd.price);
 
 
 

@@ -6,6 +6,9 @@ void Matcher2::placeOrder(const Order& order){
     if(order.type == LIMIT){
         placeLimit(order);
     }
+    else if(order.type == MARKET){
+        placeMarket(order);
+    }
 }
 
 void Matcher2::placeLimit(const Order& order){
@@ -115,12 +118,15 @@ void Matcher2::cancelOrder(long ordId){
         return;
     }
 
+    unsigned int remainingQty = 0;
     if(doomedOrder.side == BUY){
         auto& bin = buyLimitBins.at(doomedOrder.price);
-        bin.cancel(ordId);
+        bin.cancel(ordId, remainingQty);
     }
     else{
         auto& bin = sellLimitBins.at(doomedOrder.price);
-        bin.cancel(ordId);
+        bin.cancel(ordId, remainingQty);
     }
+
+    notifier->cancelled(ordId, remainingQty);
 }

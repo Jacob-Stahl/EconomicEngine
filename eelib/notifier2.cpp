@@ -18,13 +18,13 @@ void Notifier2::matchFound(long makeId, long takeId, unsigned int transferQty){
 
     if(take.side == BUY){
         Match match{
-            take, make, transferQty
+            take, make, transferQty, make.price
         };
         matches.push_back(match);
     }
     else{
         Match match{
-            make, take, transferQty
+            make, take, transferQty, make.price
         };
         matches.push_back(match);
     }

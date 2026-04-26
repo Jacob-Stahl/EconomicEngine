@@ -32,15 +32,15 @@ void LimitsBin::take(BookEntry& takeEntry){
     };
 }
 
-bool LimitsBin::cancel(long ordId){
+bool LimitsBin::cancel(long ordId, unsigned int& remainingQty){
     for(auto& order : entries){
         if(order.ordId == ordId){
             order.isCancelled = true;
             _totalQty -= order.qty;
+            remainingQty = order.qty;
             return true;
         }
     }
-
     return false;
 }
 

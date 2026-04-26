@@ -8,9 +8,11 @@ struct Match{
     Order buyer;
     Order seller;
     long qty;
+    int price;
+    
 
     public:
-        Match(const Order& ord1, const Order& ord2, long qty_)
+        Match(const Order& ord1, const Order& ord2, long qty_, int price_)
         {
             if (ord1.side == ord2.side) { std::logic_error("Can't match orders on the same side!"); }
             if (ord1.asset != ord2.asset) { std::logic_error("Can't match orders with different assets!"); } // TODO add test for this
@@ -24,15 +26,16 @@ struct Match{
             }
 
             qty = qty_;
+            price = price_;
         }
 
         long cashTransfered() const{
 
             if(buyer.type == LIMIT || buyer.type == STOPLIMIT){
-                return (long)buyer.price * qty;
+                return (long)price * qty;
             }
             else if (seller.type == LIMIT || seller.type == STOPLIMIT){
-                return (long)seller.price * qty;
+                return (long)price * qty;
             }
             
             throw std::logic_error("Can't determine cashTransfered with thr provided order types!");

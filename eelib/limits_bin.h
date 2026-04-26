@@ -29,5 +29,5 @@ class LimitsBin{
         const unsigned int totalQty() const {return _totalQty; }
         void make(const BookEntry& makeEntry);
         void take(BookEntry& takeEntry);
-        bool cancel(long ordId);
+        bool cancel(long ordId, unsigned int& remainingQty);
 };
