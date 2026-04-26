@@ -23,7 +23,7 @@ void Matcher2::placeLimit(const Order& order){
         buyBin.make(entry);
 
         // update spread
-        if(order.price > spread.highestBid){
+        if(order.price > spread.highestBid || spread.bidsMissing){
             spread.highestBid = order.price;
         }
         spread.bidsMissing = false;
@@ -37,7 +37,7 @@ void Matcher2::placeLimit(const Order& order){
         auto& sellBin = getLimitsBin(order.price, sellLimitBins);
         sellBin.make(entry);
 
-        if(order.price < spread.lowestAsk){
+        if(order.price < spread.lowestAsk || spread.asksMissing){
             spread.lowestAsk = order.price;
         }
         spread.asksMissing = false;

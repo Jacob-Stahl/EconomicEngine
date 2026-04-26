@@ -17,7 +17,6 @@ class Notifier2{
         void cancelled(long ordId, unsigned int remainingQty);
         bool getOrder(long ordId, Order& order) const;
 
-    private:
         std::unordered_map<long, Order> orderRegistery;
         std::vector<Match> matches;
         std::vector<Order> cancellations;

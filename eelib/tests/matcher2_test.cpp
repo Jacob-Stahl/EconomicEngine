@@ -25,13 +25,24 @@ protected:
 };
 
 TEST_F(Matcher2Test, PlaceBuyAndSellNoMatch_SpreadIsCorrect) {
+    // Arrange & Act
+
     // BUY LIMIT 100 1
     matcher.placeOrder(makeOrder(1, BUY, 100, 1));
     // SELL LIMIT 110 1
     matcher.placeOrder(makeOrder(2, SELL, 110, 1));
-
     const Spread& spread = matcher.getSpread();
 
+    // Assert
+
+    // No matches or cancellations expected
+    EXPECT_EQ(0, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+
+    // 2 orders have been registered
+    EXPECT_EQ(2, matcher.notifier->orderRegistery.size());
+
+    // check spread
     EXPECT_FALSE(spread.bidsMissing);
     EXPECT_FALSE(spread.asksMissing);
     EXPECT_EQ(spread.highestBid, 100);
