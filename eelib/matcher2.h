@@ -37,6 +37,7 @@ class Matcher{
     public:
         void placeOrder(const Order& order);
         void cancelOrder(long ordId);
+        const Spread& getSpread() const {return spread; };
 
 
         // Keep this public or use friends?
