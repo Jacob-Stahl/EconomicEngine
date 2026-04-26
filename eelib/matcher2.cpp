@@ -18,7 +18,6 @@ void Matcher::placeLimit(const Order& order){
 
         auto& buyBin = getLimitsBin(order.price, buyLimitBins);
         buyBin.make(entry);
-        spread.highestBid = buyLimitBins.rbegin()->first;
     }
     else{ // SELL
         if(!spread.bidsMissing && spread.highestBid >= order.price){
@@ -28,7 +27,6 @@ void Matcher::placeLimit(const Order& order){
 
         auto& sellBin = getLimitsBin(order.price, sellLimitBins);
         sellBin.make(entry);
-        spread.lowestAsk = sellLimitBins.begin()->first;
     }
     // TODO notify placement?
 }
@@ -38,47 +36,40 @@ inline LimitsBin& Matcher::getLimitsBin(int price, std::flat_map<int, LimitsBin>
     return it->second;
 }
 
-// TODO work on spread updates! these are not correct yet
-
 void Matcher::takeSells(BookEntry& buyOrder, int maxPrice = INT_MAX){
-
     // Iterating flat maps is a bit different than regular maps:
     // https://stackoverflow.com/questions/79847808/how-can-i-iterate-a-flat-map-in-a-range-based-for-loop-updating-values
     // https://stackoverflow.com/questions/13230480/what-is-the-meaning-of-a-variable-with-type-auto
     for(auto&& [price, bin] : sellLimitBins){
-        if(buyOrder.qty == 0){
-            return;
-        }
-        if(price > maxPrice){
-            return;
-        }
-        spread.lowestAsk = price;
-        spread.asksMissing = false;
-        if(bin.totalQty() == 0){
+        if(buyOrder.qty > 0 && price <= maxPrice){
+            bin.take(buyOrder); // first fill the order
             continue;
         }
-        bin.take(buyOrder);
+        if(bin.totalQty() == 0){
+            continue; // then find a non-empty bin with the best asks
+        }
+        spread.asksMissing = false;
+        spread.lowestAsk = price;
+        return; // return after updating the spread
     }
 
+    // If we reach this point, all ask liquidity has been drained
     spread.asksMissing = true;
 }
 
 void Matcher::takeBuys(BookEntry& sellOrder, int minPrice = INT_MIN){
     for(auto bin = buyLimitBins.rbegin(); bin != buyLimitBins.rend(); bin++){
         auto&& [price, limitsBin] = *bin;
-        if(sellOrder.qty == 0){
-            return;
+        if(sellOrder.qty > 0 && price >= minPrice){
+            limitsBin.take(sellOrder);
         }
-        if(price < minPrice){
-            return;
-        }
-
-        spread.highestBid = price;
-        spread.bidsMissing = false;
         if(limitsBin.totalQty() == 0){
             continue;
         }
-        limitsBin.take(sellOrder);
+        
+        spread.bidsMissing = true;
+        spread.highestBid = price;
+        return;
     }
 
     spread.bidsMissing = true;
