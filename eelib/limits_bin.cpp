@@ -48,11 +48,11 @@ void LimitsBin::notifyMatch(long makeId, long takeId, unsigned int transferQty){
     notifier->matchFound(makeId, takeId, transferQty);
 }
 
-void LimitsBin::addDormantStop(const DormantStopEntry& dormantStop){
+void LimitsBin::addDormantStop(const StopEntry& dormantStop){
     dormantStops.push_back(dormantStop);
 }
 
-const std::vector<DormantStopEntry>& LimitsBin::getDormantStops() const{
+const std::vector<StopEntry>& LimitsBin::getDormantStops() const{
     return dormantStops;
 }
 

@@ -28,11 +28,12 @@ class Matcher2{
         Spread spread;
         // depth?
 
+        std::vector<StopEntry> activeStops;
+
         LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
         void placeLimit(const Order2& order);
         void placeMarket(const Order2& order);
         void placeStop(const Order2& order);
-        void placeStopLimit(const Order2& order);
         void takeSells(BookEntry& takeEntry, int maxPrice = INT_MAX);
         void takeBuys(BookEntry& takeEntry, int minPrice = INT_MIN);
 

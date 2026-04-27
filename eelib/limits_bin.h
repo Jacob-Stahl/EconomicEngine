@@ -13,12 +13,12 @@ struct BookEntry{
         qty(order.qty){}
 };
 
-struct DormantStopEntry{
+struct StopEntry{
     BookEntry entry;
     TimeInForce timeInForce;
     OrdType type;
 
-    DormantStopEntry(const BookEntry& entry_, TimeInForce timeInForce_, OrdType type_) :
+    StopEntry(const BookEntry& entry_, TimeInForce timeInForce_, OrdType type_) :
         entry(entry_),
         timeInForce(timeInForce_),
         type(type_){}
@@ -29,7 +29,7 @@ struct DormantStopEntry{
 
 class LimitsBin{
     private:
-        std::vector<DormantStopEntry> dormantStops;
+        std::vector<StopEntry> dormantStops;
         std::deque<BookEntry> entries;
         unsigned int _totalQty = 0;
         Notifier2* notifier;
@@ -44,7 +44,7 @@ class LimitsBin{
         void make(const BookEntry& makeEntry);
         void take(BookEntry& takeEntry);
         bool cancel(long ordId, unsigned int& remainingQty);
-        void addDormantStop(const DormantStopEntry& dormantStop);
-        const std::vector<DormantStopEntry>& getDormantStops() const;
+        void addDormantStop(const StopEntry& dormantStop);
+        const std::vector<StopEntry>& getDormantStops() const;
         void clearDormantStops();
 };

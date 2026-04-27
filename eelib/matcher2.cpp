@@ -9,11 +9,8 @@ void Matcher2::placeOrder(const Order2& order){
     else if(order.type == MARKET){
         placeMarket(order);
     }
-    else if(order.type == STOPLIMIT){
-        placeStopLimit(order);
-    }
-    else if(order.type == STOP){
-        placeStopLimit(order);
+    else if(order.type == STOPLIMIT || order.type == STOP){
+        placeStop(order);
     }
 }
 
@@ -73,12 +70,34 @@ void Matcher2::placeMarket(const Order2& order){
     notifier->cancelled(entry.ordId, entry.qty);
 }
 
-void Matcher2::placeStopLimit(const Order2& order){
 
-}
-
+// https://www.interactivebrokers.com.hk/php/webhelp/Making_Trades/trigger.htm
+// https://money.stackexchange.com/questions/145433/sell-stop-limit-triggered-on-bid-or-ask
 void Matcher2::placeStop(const Order2& order){
-    
+    if(order.side == BUY){
+        // stop is active on placement
+        if(order.stopPrice <= spread.lowestAsk){
+            placeLimit(order);
+        }
+        // place dormant stop
+        else{
+            BookEntry entry{order};
+            StopEntry dormantStop(entry, order.timeInForce, order.type);
+            auto& bin = getLimitsBin(order.stopPrice, sellLimitBins);
+            bin.addDormantStop(dormantStop);
+        }
+    }
+    else{
+        if(order.stopPrice >= spread.highestBid){
+            placeLimit(order);
+        }
+        else{
+            BookEntry entry{order};
+            StopEntry dormantStop(entry, order.timeInForce, order.type);
+            auto& bin = getLimitsBin(order.stopPrice, buyLimitBins);
+            bin.addDormantStop(dormantStop);
+        }
+    }
 }
 
 inline LimitsBin& Matcher2::getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins){
