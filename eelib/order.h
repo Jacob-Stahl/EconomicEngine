@@ -107,7 +107,7 @@ struct Order{
 };
 
 
-enum class TimeInForce{
+enum TimeInForce{
     /// @brief Good Til Cancelled
     GTC,
 

@@ -47,3 +47,15 @@ bool LimitsBin::cancel(long ordId, unsigned int& remainingQty){
 void LimitsBin::notifyMatch(long makeId, long takeId, unsigned int transferQty){
     notifier->matchFound(makeId, takeId, transferQty);
 }
+
+void LimitsBin::addDormantStop(const DormantStopEntry& dormantStop){
+    dormantStops.push_back(dormantStop);
+}
+
+const std::vector<DormantStopEntry>& LimitsBin::getDormantStops() const{
+    return dormantStops;
+}
+
+void LimitsBin::clearDormantStops(){
+    dormantStops.empty();
+}

@@ -8,7 +8,20 @@ struct BookEntry{
     long ordId = -1;
     unsigned int qty = 0;
     bool isCancelled = false;
-    BookEntry(const Order2& order) : ordId(order.ordId), qty(order.qty){}
+    BookEntry(const Order2& order) : 
+        ordId(order.ordId), 
+        qty(order.qty){}
+};
+
+struct DormantStopEntry{
+    BookEntry entry;
+    TimeInForce timeInForce;
+    OrdType type;
+
+    DormantStopEntry(const BookEntry& entry_, TimeInForce timeInForce_, OrdType type_) :
+        entry(entry_),
+        timeInForce(timeInForce_),
+        type(type_){}
 };
 
 // TODO: Store all stops at this price, on this side. 
@@ -16,6 +29,7 @@ struct BookEntry{
 
 class LimitsBin{
     private:
+        std::vector<DormantStopEntry> dormantStops;
         std::deque<BookEntry> entries;
         unsigned int _totalQty = 0;
         Notifier2* notifier;
@@ -30,4 +44,7 @@ class LimitsBin{
         void make(const BookEntry& makeEntry);
         void take(BookEntry& takeEntry);
         bool cancel(long ordId, unsigned int& remainingQty);
+        void addDormantStop(const DormantStopEntry& dormantStop);
+        const std::vector<DormantStopEntry>& getDormantStops() const;
+        void clearDormantStops();
 };
