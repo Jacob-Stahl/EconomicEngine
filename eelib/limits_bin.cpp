@@ -57,5 +57,5 @@ const std::vector<DormantStopEntry>& LimitsBin::getDormantStops() const{
 }
 
 void LimitsBin::clearDormantStops(){
-    dormantStops.empty();
+    dormantStops.clear();
 }
