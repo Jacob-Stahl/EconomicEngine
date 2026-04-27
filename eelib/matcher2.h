@@ -31,6 +31,8 @@ class Matcher2{
         LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
         void placeLimit(const Order2& order);
         void placeMarket(const Order2& order);
+        void placeStop(const Order2& order);
+        void placeStopLimit(const Order2& order);
         void takeSells(BookEntry& takeEntry, int maxPrice = INT_MAX);
         void takeBuys(BookEntry& takeEntry, int minPrice = INT_MIN);
 
@@ -41,7 +43,6 @@ class Matcher2{
 
 
         // Keep this public or use friends?
-
         std::unique_ptr<Notifier2> notifier;
 
 };

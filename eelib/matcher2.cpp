@@ -9,6 +9,12 @@ void Matcher2::placeOrder(const Order2& order){
     else if(order.type == MARKET){
         placeMarket(order);
     }
+    else if(order.type == STOPLIMIT){
+        placeStopLimit(order);
+    }
+    else if(order.type == STOP){
+        placeStopLimit(order);
+    }
 }
 
 void Matcher2::placeLimit(const Order2& order){
@@ -65,6 +71,14 @@ void Matcher2::placeMarket(const Order2& order){
 
     // cancel what remains of this market order
     notifier->cancelled(entry.ordId, entry.qty);
+}
+
+void Matcher2::placeStopLimit(const Order2& order){
+
+}
+
+void Matcher2::placeStop(const Order2& order){
+    
 }
 
 inline LimitsBin& Matcher2::getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins){
