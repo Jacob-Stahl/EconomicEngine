@@ -132,6 +132,10 @@ void Matcher2::takeSells(BookEntry& buyOrder, int maxPrice){
     // https://stackoverflow.com/questions/79847808/how-can-i-iterate-a-flat-map-in-a-range-based-for-loop-updating-values
     // https://stackoverflow.com/questions/13230480/what-is-the-meaning-of-a-variable-with-type-auto
     for(auto&& [price, bin] : sellLimitBins){
+        if(bin.hasDormantStops()){
+            bin.moveAllStopsToActive(activeBuyStops);
+        }
+
         if(buyOrder.qty > 0 && price <= maxPrice){
             bin.take(buyOrder); // first fill the order
         }
@@ -150,6 +154,10 @@ void Matcher2::takeSells(BookEntry& buyOrder, int maxPrice){
 void Matcher2::takeBuys(BookEntry& sellOrder, int minPrice){
     for(auto bin = buyLimitBins.rbegin(); bin != buyLimitBins.rend(); bin++){
         auto&& [price, limitsBin] = *bin;
+
+        if(limitsBin.hasDormantStops()){
+            limitsBin.moveAllStopsToActive(activeSellStops);
+        }
         if(sellOrder.qty > 0 && price >= minPrice){
             limitsBin.take(sellOrder);
         }

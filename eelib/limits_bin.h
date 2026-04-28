@@ -42,11 +42,12 @@ class LimitsBin{
         /// @brief Takes raw pointer to notifier in Matcher2. LimitsBin has no effect on the nofifier lifetime
         /// @param _notifier 
         LimitsBin(Notifier2* _notifier): notifier(_notifier){};
-        const unsigned int totalQty() const {return _totalQty; }
+        const unsigned int totalQty() const {return _totalQty; };
         void make(const BookEntry& makeEntry);
         void take(BookEntry& takeEntry);
         bool cancel(long ordId, unsigned int& remainingQty);
+
+        bool hasDormantStops() const;
         void addDormantStop(const StopEntry& dormantStop);
-        const std::vector<StopEntry>& getDormantStops() const;
-        void clearDormantStops();
+        void moveAllStopsToActive(std::vector<StopEntry>& activeStops);
 };

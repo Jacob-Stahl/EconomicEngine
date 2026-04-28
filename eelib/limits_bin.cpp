@@ -52,10 +52,13 @@ void LimitsBin::addDormantStop(const StopEntry& dormantStop){
     dormantStops.push_back(dormantStop);
 }
 
-const std::vector<StopEntry>& LimitsBin::getDormantStops() const{
-    return dormantStops;
+void LimitsBin::moveAllStopsToActive(std::vector<StopEntry>& activeStops){
+    for(auto& stop : dormantStops){
+        activeStops.push_back(std::move(stop));
+    }
+    dormantStops.clear();
 }
 
-void LimitsBin::clearDormantStops(){
-    dormantStops.clear();
+bool LimitsBin::hasDormantStops() const{
+    return dormantStops.empty();
 }
