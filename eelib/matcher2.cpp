@@ -3,57 +3,75 @@
 void Matcher2::placeOrder(const Order2& order){
     notifier->registerOrder(order);
 
+    // Place this order
     if(order.type == LIMIT){
-        placeLimit(order);
+        BookEntry entry{order};
+        placeLimit(entry, order.side, order.price);
     }
     else if(order.type == MARKET){
-        placeMarket(order);
+        BookEntry entry{order};
+        placeMarket(entry, order.side);
     }
     else if(order.type == STOPLIMIT || order.type == STOP){
         placeStop(order);
     }
+
+    // If this order activates any stops, place them on the book
+    for(auto& stopEntry : activeSellStops){
+        if(stopEntry.type == STOPLIMIT){
+            placeLimit(stopEntry.entry, SELL, stopEntry.limitPrice);
+        }
+        else{
+            placeMarket(stopEntry.entry, SELL);
+        }
+    }
+    for(auto& stopEntry : activeBuyStops){
+        if(stopEntry.type == STOPLIMIT){
+            placeLimit(stopEntry.entry, BUY, stopEntry.limitPrice);
+        }
+        else{
+            placeMarket(stopEntry.entry, BUY);
+        }
+    }
 }
 
-void Matcher2::placeLimit(const Order2& order){
-    BookEntry entry{order};
-    if(order.side == BUY){
-
+void Matcher2::placeLimit(BookEntry& entry, Side side, int price){
+    if(side == BUY){
         // try to match if it crosses the spread
-        if(!spread.asksMissing && spread.lowestAsk <= order.price){
-            takeSells(entry, order.price);
+        if(!spread.asksMissing && spread.lowestAsk <= price){
+            takeSells(entry, price);
             if(entry.qty == 0){ return;}
         }
 
         // place on book
-        auto& buyBin = getLimitsBin(order.price, buyLimitBins);
+        auto& buyBin = getLimitsBin(price, buyLimitBins);
         buyBin.make(entry);
 
         // update spread
-        if(order.price > spread.highestBid || spread.bidsMissing){
-            spread.highestBid = order.price;
+        if(price > spread.highestBid || spread.bidsMissing){
+            spread.highestBid = price;
         }
         spread.bidsMissing = false;
     }
     else{ // SELL
-        if(!spread.bidsMissing && spread.highestBid >= order.price){
-            takeBuys(entry, order.price);
+        if(!spread.bidsMissing && spread.highestBid >= price){
+            takeBuys(entry, price);
             if(entry.qty == 0){ return;}
         }
 
-        auto& sellBin = getLimitsBin(order.price, sellLimitBins);
+        auto& sellBin = getLimitsBin(price, sellLimitBins);
         sellBin.make(entry);
 
-        if(order.price < spread.lowestAsk || spread.asksMissing){
-            spread.lowestAsk = order.price;
+        if(price < spread.lowestAsk || spread.asksMissing){
+            spread.lowestAsk = price;
         }
         spread.asksMissing = false;
     }
     // TODO notify placement?
 }
 
-void Matcher2::placeMarket(const Order2& order){
-    BookEntry entry{order};
-    if(order.side == BUY){
+void Matcher2::placeMarket(BookEntry& entry, Side side){
+    if(side == BUY){
         if(!spread.asksMissing){
             takeSells(entry);
             if(entry.qty == 0){ return;}
@@ -73,27 +91,31 @@ void Matcher2::placeMarket(const Order2& order){
 
 // https://www.interactivebrokers.com.hk/php/webhelp/Making_Trades/trigger.htm
 // https://money.stackexchange.com/questions/145433/sell-stop-limit-triggered-on-bid-or-ask
+
+// TODO optimize this for branch prediction
 void Matcher2::placeStop(const Order2& order){
     if(order.side == BUY){
         // stop is active on placement
         if(order.stopPrice <= spread.lowestAsk){
-            placeLimit(order);
+            BookEntry entry{order};
+            placeLimit(entry, order.side, order.price);
         }
         // place dormant stop
         else{
             BookEntry entry{order};
-            StopEntry dormantStop(entry, order.timeInForce, order.type);
+            StopEntry dormantStop(entry, order.timeInForce, order.type, order.price);
             auto& bin = getLimitsBin(order.stopPrice, sellLimitBins);
             bin.addDormantStop(dormantStop);
         }
     }
     else{
         if(order.stopPrice >= spread.highestBid){
-            placeLimit(order);
+            BookEntry entry{order};
+            placeLimit(entry, order.side, order.price);
         }
         else{
             BookEntry entry{order};
-            StopEntry dormantStop(entry, order.timeInForce, order.type);
+            StopEntry dormantStop(entry, order.timeInForce, order.type, order.price);
             auto& bin = getLimitsBin(order.stopPrice, buyLimitBins);
             bin.addDormantStop(dormantStop);
         }

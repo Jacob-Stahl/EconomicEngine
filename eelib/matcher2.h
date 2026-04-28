@@ -25,14 +25,16 @@ class Matcher2{
         std::flat_map<int, LimitsBin> buyLimitBins;
         std::flat_map<int, LimitsBin> sellLimitBins;
 
+        // Active stop order are cleared and recursivally placed by placeOrder()
+        std::vector<StopEntry> activeBuyStops;
+        std::vector<StopEntry> activeSellStops;
+
         Spread spread;
         // depth?
 
-        std::vector<StopEntry> activeStops;
-
         LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
-        void placeLimit(const Order2& order);
-        void placeMarket(const Order2& order);
+        void placeLimit(BookEntry& entry, Side side, int price);
+        void placeMarket(BookEntry& entry, Side side);
         void placeStop(const Order2& order);
         void takeSells(BookEntry& takeEntry, int maxPrice = INT_MAX);
         void takeBuys(BookEntry& takeEntry, int minPrice = INT_MIN);
