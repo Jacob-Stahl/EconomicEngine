@@ -60,5 +60,5 @@ void LimitsBin::moveAllStopsToActive(std::vector<StopEntry>& activeStops){
 }
 
 bool LimitsBin::hasDormantStops() const{
-    return dormantStops.empty();
+    return !dormantStops.empty();
 }

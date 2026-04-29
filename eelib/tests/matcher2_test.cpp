@@ -28,6 +28,24 @@ protected:
             .withOrdId(ordId)
             .build();
     }
+
+    Order2 makeStop(long ordId, Side side, int stopPrice, unsigned int qty) {
+        return OrderBuilder()
+            .stop(side, stopPrice, qty)
+            .withAsset("TEST")
+            .withTraderId(1)
+            .withOrdId(ordId)
+            .build();
+    }
+
+    Order2 makeStopLimit(long ordId, Side side, int limitPrice, int stopPrice, unsigned int qty) {
+        return OrderBuilder()
+            .stopLimit(side, limitPrice, stopPrice, qty)
+            .withAsset("TEST")
+            .withTraderId(1)
+            .withOrdId(ordId)
+            .build();
+    }
 };
 
 TEST_F(Matcher2Test, PlaceBuyAndSellLimits_NoMatch_StateIsCorrect) {
@@ -251,4 +269,57 @@ TEST_F(Matcher2Test, SpreadCrossed_PartialFill_SELL_LIMIT_PlacedOnBook_StateIsCo
     EXPECT_EQ(7, matcher.notifier->matches[1].seller.ordId);
     EXPECT_EQ(2, matcher.notifier->matches[1].qty);
     EXPECT_EQ(99, matcher.notifier->matches[1].price);
+}
+
+TEST_F(Matcher2Test, StopLimitsActivateOnPriceSignal){
+
+    // Place BUY LIMITS and a SELL STOP with a trigger price in the middle
+    matcher.placeOrder(makeLimit(1, BUY, 115, 1));
+    matcher.placeOrder(makeLimit(2, BUY, 111, 1));
+    matcher.placeOrder(makeLimit(3, BUY, 110, 1));
+    matcher.placeOrder(makeLimit(4, BUY, 105, 1));
+    matcher.placeOrder(makeStop(5, SELL, 110, 1));
+
+    // No matches expected initially
+    EXPECT_EQ(0, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+
+    // Take the BUY limit @115. 1 match expected, trigger price IS NOT reached
+    matcher.placeOrder(makeMarket(6, SELL, 1));
+    EXPECT_EQ(1, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+
+    // Take the BUY limit @111 AND @110. another match expected, trigger price IS reached
+    matcher.placeOrder(makeMarket(7, SELL, 1));
+    EXPECT_EQ(3, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+
+    // Take the BUY limit @105. Last order is consumed.
+    matcher.placeOrder(makeMarket(8, SELL, 1));
+    EXPECT_EQ(4, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+
+    // Match 0: first market sell takes the best bid @115
+    EXPECT_EQ(1,   matcher.notifier->matches[0].buyer.ordId);
+    EXPECT_EQ(6,   matcher.notifier->matches[0].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[0].qty);
+    EXPECT_EQ(115, matcher.notifier->matches[0].price);
+
+    // Match 1: second market sell takes bid @111, activating the dormant stop at 110
+    EXPECT_EQ(2,   matcher.notifier->matches[1].buyer.ordId);
+    EXPECT_EQ(7,   matcher.notifier->matches[1].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[1].qty);
+    EXPECT_EQ(111, matcher.notifier->matches[1].price);
+
+    // Match 2: the now-active stop market-sells into the bid @110
+    EXPECT_EQ(3,   matcher.notifier->matches[2].buyer.ordId);
+    EXPECT_EQ(5,   matcher.notifier->matches[2].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[2].qty);
+    EXPECT_EQ(110, matcher.notifier->matches[2].price);
+
+    // Match 3: third market sell takes the remaining bid @105
+    EXPECT_EQ(4,   matcher.notifier->matches[3].buyer.ordId);
+    EXPECT_EQ(8,   matcher.notifier->matches[3].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[3].qty);
+    EXPECT_EQ(105, matcher.notifier->matches[3].price);
 }
