@@ -84,8 +84,10 @@ void Matcher2::placeMarket(BookEntry& entry, Side side){
         }
     }
 
-    // cancel what remains of this market order
-    notifier->cancelled(entry.ordId, entry.qty);
+    // cancel what remains of this market order, if any
+    if(entry.qty > 0){
+        notifier->cancelled(entry.ordId, entry.qty);
+    }
 }
 
 
