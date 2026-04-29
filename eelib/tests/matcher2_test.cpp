@@ -271,7 +271,7 @@ TEST_F(Matcher2Test, SpreadCrossed_PartialFill_SELL_LIMIT_PlacedOnBook_StateIsCo
     EXPECT_EQ(99, matcher.notifier->matches[1].price);
 }
 
-TEST_F(Matcher2Test, StopLimitsActivateOnPriceSignal){
+TEST_F(Matcher2Test, StopsActivateOnPriceSignal){
 
     // Place BUY LIMITS and a SELL STOP with a trigger price in the middle
     matcher.placeOrder(makeLimit(1, BUY, 115, 1));
@@ -333,4 +333,72 @@ TEST_F(Matcher2Test, StopLimitsActivateOnPriceSignal){
     EXPECT_EQ(8,   matcher.notifier->matches[3].seller.ordId);
     EXPECT_EQ(1,   matcher.notifier->matches[3].qty);
     EXPECT_EQ(105, matcher.notifier->matches[3].price);
+}
+
+TEST_F(Matcher2Test, BuyStopLimitActivatesOnPriceSignal){
+
+    // Place SELL LIMITS at 100, 105, 110, 115
+    // and a dormant BUY STOP LIMIT (stopPrice=105, limitPrice=110)
+    // The stop is dormant because stopPrice(105) > lowestAsk(100)
+    matcher.placeOrder(makeLimit(1, SELL, 100, 1));
+    matcher.placeOrder(makeLimit(2, SELL, 105, 1));
+    matcher.placeOrder(makeLimit(3, SELL, 110, 1));
+    matcher.placeOrder(makeLimit(4, SELL, 115, 1));
+    matcher.placeOrder(makeStopLimit(5, BUY, 110, 105, 1));
+
+    // No matches expected initially
+    EXPECT_EQ(0, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_TRUE(matcher.getSpread().bidsMissing);
+    EXPECT_FALSE(matcher.getSpread().asksMissing);
+    EXPECT_EQ(100, matcher.getSpread().lowestAsk);
+
+    // Take the SELL limit @100. 2 matches expected: the market buy fills @100,
+    // which sweeps through bid@105, activating the dormant stop.
+    // The now-active stop limit immediately takes the ask @105 (within its limit of 110).
+    matcher.placeOrder(makeMarket(6, BUY, 1));
+    EXPECT_EQ(2, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_TRUE(matcher.getSpread().bidsMissing);
+    EXPECT_FALSE(matcher.getSpread().asksMissing);
+    EXPECT_EQ(110, matcher.getSpread().lowestAsk);
+
+    // Take the SELL limit @110. 1 more match expected, trigger price is NOT reached again
+    matcher.placeOrder(makeMarket(7, BUY, 1));
+    EXPECT_EQ(3, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_TRUE(matcher.getSpread().bidsMissing);
+    EXPECT_FALSE(matcher.getSpread().asksMissing);
+    EXPECT_EQ(115, matcher.getSpread().lowestAsk);
+
+    // Take the SELL limit @115. Book should be empty afterwards
+    matcher.placeOrder(makeMarket(8, BUY, 1));
+    EXPECT_EQ(4, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_TRUE(matcher.getSpread().bidsMissing);
+    EXPECT_TRUE(matcher.getSpread().asksMissing);
+
+    // Match 0: first market buy takes the best ask @100
+    EXPECT_EQ(6,   matcher.notifier->matches[0].buyer.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[0].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[0].qty);
+    EXPECT_EQ(100, matcher.notifier->matches[0].price);
+
+    // Match 1: the now-active stop limit buys into the ask @105 (within its limit of 110)
+    EXPECT_EQ(5,   matcher.notifier->matches[1].buyer.ordId);
+    EXPECT_EQ(2,   matcher.notifier->matches[1].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[1].qty);
+    EXPECT_EQ(105, matcher.notifier->matches[1].price);
+
+    // Match 2: second market buy takes ask @110
+    EXPECT_EQ(7,   matcher.notifier->matches[2].buyer.ordId);
+    EXPECT_EQ(3,   matcher.notifier->matches[2].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[2].qty);
+    EXPECT_EQ(110, matcher.notifier->matches[2].price);
+
+    // Match 3: third market buy takes ask @115
+    EXPECT_EQ(8,   matcher.notifier->matches[3].buyer.ordId);
+    EXPECT_EQ(4,   matcher.notifier->matches[3].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[3].qty);
+    EXPECT_EQ(115, matcher.notifier->matches[3].price);
 }
