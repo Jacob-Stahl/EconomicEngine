@@ -283,21 +283,32 @@ TEST_F(Matcher2Test, StopLimitsActivateOnPriceSignal){
     // No matches expected initially
     EXPECT_EQ(0, matcher.notifier->matches.size());
     EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_FALSE(matcher.getSpread().bidsMissing);
+    EXPECT_TRUE(matcher.getSpread().asksMissing);
+    EXPECT_EQ(115, matcher.getSpread().highestBid);
 
     // Take the BUY limit @115. 1 match expected, trigger price IS NOT reached
     matcher.placeOrder(makeMarket(6, SELL, 1));
     EXPECT_EQ(1, matcher.notifier->matches.size());
     EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_FALSE(matcher.getSpread().bidsMissing);
+    EXPECT_TRUE(matcher.getSpread().asksMissing);
+    EXPECT_EQ(111, matcher.getSpread().highestBid);
 
     // Take the BUY limit @111 AND @110. another match expected, trigger price IS reached
     matcher.placeOrder(makeMarket(7, SELL, 1));
     EXPECT_EQ(3, matcher.notifier->matches.size());
     EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_FALSE(matcher.getSpread().bidsMissing);
+    EXPECT_TRUE(matcher.getSpread().asksMissing);
+    EXPECT_EQ(105, matcher.getSpread().highestBid);
 
-    // Take the BUY limit @105. Last order is consumed.
+    // Take the BUY limit @105. Book should be empty afterwards
     matcher.placeOrder(makeMarket(8, SELL, 1));
     EXPECT_EQ(4, matcher.notifier->matches.size());
     EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_TRUE(matcher.getSpread().bidsMissing);
+    EXPECT_TRUE(matcher.getSpread().asksMissing);
 
     // Match 0: first market sell takes the best bid @115
     EXPECT_EQ(1,   matcher.notifier->matches[0].buyer.ordId);
