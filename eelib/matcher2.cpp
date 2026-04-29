@@ -17,21 +17,25 @@ void Matcher2::placeOrder(const Order2& order){
     }
 
     // If this order activates any stops, place them on the book
-    for(auto& stopEntry : activeSellStops){
-        if(stopEntry.type == STOPLIMIT){
-            placeLimit(stopEntry.entry, SELL, stopEntry.limitPrice);
+    while(!activeBuyStops.empty() || !activeSellStops.empty()){
+        for(auto& stopEntry : activeSellStops){
+            if(stopEntry.type == STOPLIMIT){
+                placeLimit(stopEntry.entry, SELL, stopEntry.limitPrice);
+            }
+            else{
+                placeMarket(stopEntry.entry, SELL);
+            }
         }
-        else{
-            placeMarket(stopEntry.entry, SELL);
+        activeSellStops.clear();
+        for(auto& stopEntry : activeBuyStops){
+            if(stopEntry.type == STOPLIMIT){
+                placeLimit(stopEntry.entry, BUY, stopEntry.limitPrice);
+            }
+            else{
+                placeMarket(stopEntry.entry, BUY);
+            }
         }
-    }
-    for(auto& stopEntry : activeBuyStops){
-        if(stopEntry.type == STOPLIMIT){
-            placeLimit(stopEntry.entry, BUY, stopEntry.limitPrice);
-        }
-        else{
-            placeMarket(stopEntry.entry, BUY);
-        }
+        activeBuyStops.clear();
     }
 }
 
