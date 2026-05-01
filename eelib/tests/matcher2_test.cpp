@@ -402,3 +402,66 @@ TEST_F(Matcher2Test, BuyStopLimitActivatesOnPriceSignal){
     EXPECT_EQ(1,   matcher.notifier->matches[3].qty);
     EXPECT_EQ(115, matcher.notifier->matches[3].price);
 }
+
+TEST_F(Matcher2Test, StopChainReaction_ActivatedStopTriggersAnotherStop){
+
+    // Setup: BUY LIMITS descending, two dormant SELL STOPs at intermediate prices.
+    // Stop A (stopPrice=115) activates when highestBid falls to 115.
+    // Stop B (stopPrice=105) activates when highestBid falls to 105.
+    // Stop A's activation should drive price down far enough to trigger Stop B.
+    matcher.placeOrder(makeLimit(1, BUY, 120, 1));
+    matcher.placeOrder(makeLimit(2, BUY, 110, 1));
+    matcher.placeOrder(makeLimit(3, BUY, 100, 1));
+    matcher.placeOrder(makeLimit(4, BUY,  90, 1));
+    matcher.placeOrder(makeStop(5, SELL, 115, 1)); // Stop A — dormant: 115 < highestBid(120)
+    matcher.placeOrder(makeStop(6, SELL, 105, 1)); // Stop B — dormant: 105 < highestBid(120)
+
+    // No matches expected initially
+    EXPECT_EQ(0, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_FALSE(matcher.getSpread().bidsMissing);
+    EXPECT_TRUE(matcher.getSpread().asksMissing);
+    EXPECT_EQ(120, matcher.getSpread().highestBid);
+
+    // Market SELL #7 takes bid@120. While scanning, Stop A's bin@115 is hit → activates.
+    // Stop A (now a market sell) takes bid@110. While scanning, Stop B's bin@105 is hit → activates.
+    // Stop B (now a market sell) takes bid@100.
+    // All three happen in a single placeOrder call via the while loop.
+    matcher.placeOrder(makeMarket(7, SELL, 1));
+    EXPECT_EQ(3, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_FALSE(matcher.getSpread().bidsMissing);
+    EXPECT_TRUE(matcher.getSpread().asksMissing);
+    EXPECT_EQ(90, matcher.getSpread().highestBid);
+
+    // Final market sell drains the book
+    matcher.placeOrder(makeMarket(8, SELL, 1));
+    EXPECT_EQ(4, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+    EXPECT_TRUE(matcher.getSpread().bidsMissing);
+    EXPECT_TRUE(matcher.getSpread().asksMissing);
+
+    // Match 0: market sell #7 takes best bid @120
+    EXPECT_EQ(1,   matcher.notifier->matches[0].buyer.ordId);
+    EXPECT_EQ(7,   matcher.notifier->matches[0].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[0].qty);
+    EXPECT_EQ(120, matcher.notifier->matches[0].price);
+
+    // Match 1: Stop A activates, market-sells into bid @110
+    EXPECT_EQ(2,   matcher.notifier->matches[1].buyer.ordId);
+    EXPECT_EQ(5,   matcher.notifier->matches[1].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[1].qty);
+    EXPECT_EQ(110, matcher.notifier->matches[1].price);
+
+    // Match 2: Stop B activates (triggered by Stop A's fill), market-sells into bid @100
+    EXPECT_EQ(3,   matcher.notifier->matches[2].buyer.ordId);
+    EXPECT_EQ(6,   matcher.notifier->matches[2].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[2].qty);
+    EXPECT_EQ(100, matcher.notifier->matches[2].price);
+
+    // Match 3: market sell #8 takes the last remaining bid @90
+    EXPECT_EQ(4,   matcher.notifier->matches[3].buyer.ordId);
+    EXPECT_EQ(8,   matcher.notifier->matches[3].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[3].qty);
+    EXPECT_EQ(90,  matcher.notifier->matches[3].price);
+}
