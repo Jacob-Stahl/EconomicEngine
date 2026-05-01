@@ -176,3 +176,23 @@ void Matcher2::cancelOrder(long ordId){
 
     notifier->cancelled(ordId, remainingQty);
 }
+
+const Depth Matcher2::getDepth() const {
+    Depth depth;
+
+    // Bids: highest price first
+    for (auto it = buyLimitBins.rbegin(); it != buyLimitBins.rend(); ++it) {
+        if (it->second.totalQty() > 0) {
+            depth.bidBins.push_back({it->first, it->second.totalQty()});
+        }
+    }
+
+    // Asks: lowest price first
+    for (auto it = sellLimitBins.begin(); it != sellLimitBins.end(); ++it) {
+        if (it->second.totalQty() > 0) {
+            depth.askBins.push_back({it->first, it->second.totalQty()});
+        }
+    }
+
+    return depth;
+}

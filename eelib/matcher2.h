@@ -30,7 +30,6 @@ class Matcher2{
         std::vector<StopEntry> activeSellStops;
 
         Spread spread;
-        // depth?
 
         LimitsBin& getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins);
         void placeLimit(BookEntry& entry, Side side, int price);
@@ -43,6 +42,7 @@ class Matcher2{
         void placeOrder(const Order2& order);
         void cancelOrder(long ordId);
         const Spread& getSpread() const {return spread; };
+        const Depth getDepth() const;
 
 
         // Keep this public or use friends?

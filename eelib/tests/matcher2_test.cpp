@@ -502,3 +502,54 @@ TEST_F(Matcher2Test, MarketAndActivatedStop_NoLiquidity_AreCancelled){
 
     EXPECT_EQ(4, matcher.notifier->cancellations[1].ordId);
 }
+
+TEST_F(Matcher2Test, GetDepth_NoMatchReflectsAllLevels){
+    // Place 3 bid levels and 3 ask levels with no overlap
+    matcher.placeOrder(makeLimit(1, BUY,  90, 1));
+    matcher.placeOrder(makeLimit(2, BUY,  95, 2));
+    matcher.placeOrder(makeLimit(3, BUY, 100, 3));
+    matcher.placeOrder(makeLimit(4, SELL, 110, 1));
+    matcher.placeOrder(makeLimit(5, SELL, 115, 2));
+    matcher.placeOrder(makeLimit(6, SELL, 120, 3));
+
+    const Depth depth = matcher.getDepth();
+
+    // Bids: highest price first
+    ASSERT_EQ(3, depth.bidBins.size());
+    EXPECT_EQ(100, depth.bidBins[0].price);
+    EXPECT_EQ(3,   depth.bidBins[0].totalQty);
+    EXPECT_EQ(95,  depth.bidBins[1].price);
+    EXPECT_EQ(2,   depth.bidBins[1].totalQty);
+    EXPECT_EQ(90,  depth.bidBins[2].price);
+    EXPECT_EQ(1,   depth.bidBins[2].totalQty);
+
+    // Asks: lowest price first
+    ASSERT_EQ(3, depth.askBins.size());
+    EXPECT_EQ(110, depth.askBins[0].price);
+    EXPECT_EQ(1,   depth.askBins[0].totalQty);
+    EXPECT_EQ(115, depth.askBins[1].price);
+    EXPECT_EQ(2,   depth.askBins[1].totalQty);
+    EXPECT_EQ(120, depth.askBins[2].price);
+    EXPECT_EQ(3,   depth.askBins[2].totalQty);
+}
+
+TEST_F(Matcher2Test, GetDepth_DrainedLevelIsExcluded){
+    // Three ask levels; a market buy will fully consume the best ask (110)
+    matcher.placeOrder(makeLimit(1, SELL, 110, 2));
+    matcher.placeOrder(makeLimit(2, SELL, 115, 2));
+    matcher.placeOrder(makeLimit(3, BUY,  100, 2));
+
+    matcher.placeOrder(makeMarket(4, BUY, 2)); // drains ask@110 entirely
+
+    const Depth depth = matcher.getDepth();
+
+    // ask@110 is gone; only ask@115 remains
+    ASSERT_EQ(1, depth.askBins.size());
+    EXPECT_EQ(115, depth.askBins[0].price);
+    EXPECT_EQ(2,   depth.askBins[0].totalQty);
+
+    // bid@100 is still present
+    ASSERT_EQ(1, depth.bidBins.size());
+    EXPECT_EQ(100, depth.bidBins[0].price);
+    EXPECT_EQ(2,   depth.bidBins[0].totalQty);
+}
