@@ -18,24 +18,16 @@ void Matcher2::placeOrder(const Order2& order){
 
     // If this order activates any stops, place them on the book
     while(!activeBuyStops.empty() || !activeSellStops.empty()){
-        for(auto& stopEntry : activeSellStops){
-            if(stopEntry.type == STOPLIMIT){
-                placeLimit(stopEntry.entry, SELL, stopEntry.limitPrice);
-            }
-            else if(stopEntry.type == STOP){
-                placeMarket(stopEntry.entry, SELL);
-            }
+        auto sellBatch = std::move(activeSellStops); // activeSellStops is now empty
+        for(auto& stopEntry : sellBatch){
+            if(stopEntry.type == STOPLIMIT) placeLimit(stopEntry.entry, SELL, stopEntry.limitPrice);
+            else if(stopEntry.type == STOP) placeMarket(stopEntry.entry, SELL);
         }
-        activeSellStops.clear();
-        for(auto& stopEntry : activeBuyStops){
-            if(stopEntry.type == STOPLIMIT){
-                placeLimit(stopEntry.entry, BUY, stopEntry.limitPrice);
-            }
-            else if(stopEntry.type == STOP){
-                placeMarket(stopEntry.entry, BUY);
-            }
+        auto buyBatch = std::move(activeBuyStops);
+        for(auto& stopEntry : buyBatch){
+            if(stopEntry.type == STOPLIMIT) placeLimit(stopEntry.entry, BUY, stopEntry.limitPrice);
+            else if(stopEntry.type == STOP) placeMarket(stopEntry.entry, BUY);
         }
-        activeBuyStops.clear();
     }
 }
 
