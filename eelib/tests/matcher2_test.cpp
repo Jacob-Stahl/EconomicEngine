@@ -465,3 +465,40 @@ TEST_F(Matcher2Test, StopChainReaction_ActivatedStopTriggersAnotherStop){
     EXPECT_EQ(1,   matcher.notifier->matches[3].qty);
     EXPECT_EQ(90,  matcher.notifier->matches[3].price);
 }
+
+TEST_F(Matcher2Test, MarketAndActivatedStop_NoLiquidity_AreCancelled){
+
+    // One bid exists. A dormant SELL STOP sits below it at stopPrice=95.
+    matcher.placeOrder(makeLimit(1, BUY, 100, 1));
+    matcher.placeOrder(makeStop(2, SELL, 95, 1)); // dormant: 95 < highestBid(100)
+
+    EXPECT_EQ(0, matcher.notifier->matches.size());
+    EXPECT_EQ(0, matcher.notifier->cancellations.size());
+
+    // Market SELL #3 drains the only bid @100. While scanning downward, the
+    // stop bin@95 is reached — stop #2 is activated. After the SELL market order
+    // completes, the while loop fires stop #2 as a market sell, but there are
+    // no bids left — stop #2 is cancelled.
+    matcher.placeOrder(makeMarket(3, SELL, 1));
+    EXPECT_EQ(1, matcher.notifier->matches.size());
+    EXPECT_EQ(1, matcher.notifier->cancellations.size());
+    EXPECT_TRUE(matcher.getSpread().bidsMissing);
+    EXPECT_TRUE(matcher.getSpread().asksMissing);
+
+    EXPECT_EQ(1,   matcher.notifier->matches[0].buyer.ordId);
+    EXPECT_EQ(3,   matcher.notifier->matches[0].seller.ordId);
+    EXPECT_EQ(1,   matcher.notifier->matches[0].qty);
+    EXPECT_EQ(100, matcher.notifier->matches[0].price);
+
+    // Stop #2 activated but found no bids — cancelled
+    EXPECT_EQ(2, matcher.notifier->cancellations[0].ordId);
+
+    // Market BUY #4 placed on an empty book — no asks exist, cancelled immediately
+    matcher.placeOrder(makeMarket(4, BUY, 1));
+    EXPECT_EQ(1, matcher.notifier->matches.size());
+    EXPECT_EQ(2, matcher.notifier->cancellations.size());
+    EXPECT_TRUE(matcher.getSpread().bidsMissing);
+    EXPECT_TRUE(matcher.getSpread().asksMissing);
+
+    EXPECT_EQ(4, matcher.notifier->cancellations[1].ordId);
+}
