@@ -120,14 +120,14 @@ enum TimeInForce{
 
 struct Order2{
     std::string asset;
-    long traderId;
-    long ordId;
+    long traderId = -1;
+    long ordId = -1;
     Side side;
     OrdType type;
     TimeInForce timeInForce;
-    int price;
-    unsigned int qty;
-    int stopPrice;
+    int price = 0;
+    unsigned int qty = 0;
+    int stopPrice = 0;
 };
 
 class OrderBuilder{
