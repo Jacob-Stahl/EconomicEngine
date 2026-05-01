@@ -67,17 +67,13 @@ void Matcher2::placeLimit(BookEntry& entry, Side side, int price){
 }
 
 void Matcher2::placeMarket(BookEntry& entry, Side side){
-    if(side == BUY){
-        if(!spread.asksMissing){
-            takeSells(entry);
-            if(entry.qty == 0){ return;}
-        }
+    bool takeSellLimits = side == BUY && !spread.asksMissing;
+    bool takeBuyLimits = side == SELL && !spread.bidsMissing;
+    if(takeSellLimits){
+        takeSells(entry);
     }
-    else{ // SELL
-        if(!spread.bidsMissing){
-            takeBuys(entry);
-            if(entry.qty == 0){ return;}
-        }
+    if(takeBuyLimits){
+        takeBuys(entry);
     }
 
     // cancel what remains of this market order, if any
@@ -86,36 +82,28 @@ void Matcher2::placeMarket(BookEntry& entry, Side side){
     }
 }
 
-
 // https://www.interactivebrokers.com.hk/php/webhelp/Making_Trades/trigger.htm
 // https://money.stackexchange.com/questions/145433/sell-stop-limit-triggered-on-bid-or-ask
-
-// TODO optimize this for branch prediction
 void Matcher2::placeStop(const Order2& order){
-    if(order.side == BUY){
-        // stop is active on placement
-        if(order.stopPrice <= spread.lowestAsk){
-            BookEntry entry{order};
-            placeLimit(entry, order.side, order.price);
-        }
-        // place dormant stop
-        else{
-            StopEntry dormantStop(order);
-            auto& bin = getLimitsBin(order.stopPrice, sellLimitBins);
-            bin.addDormantStop(dormantStop);
-        }
+    StopEntry dormantStop(order);
+
+    // Put stops in trigger price bins if the are NOT active on placement
+    bool buyStopDormant = order.side == BUY && (order.stopPrice > spread.lowestAsk);
+    bool sellStopDormant = order.side == SELL && (order.stopPrice < spread.highestBid);
+    if(buyStopDormant){
+        auto& bin = getLimitsBin(order.stopPrice, sellLimitBins);
+        bin.addDormantStop(dormantStop);
+        return;
     }
-    else{
-        if(order.stopPrice >= spread.highestBid){
-            BookEntry entry{order};
-            placeLimit(entry, order.side, order.price);
-        }
-        else{
-            StopEntry dormantStop(order);
-            auto& bin = getLimitsBin(order.stopPrice, buyLimitBins);
-            bin.addDormantStop(dormantStop);
-        }
+    if(sellStopDormant){
+        auto& bin = getLimitsBin(order.stopPrice, buyLimitBins);
+        bin.addDormantStop(dormantStop);
+        return;
     }
+
+    // Place stops on book if they are active on placement.
+    if(order.type == STOPLIMIT) placeLimit(dormantStop.entry, order.side, order.price);
+    if(order.type == STOP) placeMarket(dormantStop.entry, order.side);
 }
 
 inline LimitsBin& Matcher2::getLimitsBin(int price, std::flat_map<int, LimitsBin>& bins){
