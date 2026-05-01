@@ -14,16 +14,16 @@ struct BookEntry{
 };
 
 struct StopEntry{
-    BookEntry entry;
     TimeInForce timeInForce;
     OrdType type;
     int limitPrice;
+    BookEntry entry;
 
-    StopEntry(const BookEntry& entry_, TimeInForce timeInForce_, OrdType type_, int limitPrice_) :
-        entry(entry_),
-        timeInForce(timeInForce_),
-        type(type_),
-        limitPrice(limitPrice_){}
+    StopEntry(const Order2& order) :
+        timeInForce(order.timeInForce),
+        type(order.type),
+        limitPrice(order.price),
+        entry(order){}
 };
 
 // TODO: Store all stops at this price, on this side. 

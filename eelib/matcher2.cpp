@@ -108,8 +108,7 @@ void Matcher2::placeStop(const Order2& order){
         }
         // place dormant stop
         else{
-            BookEntry entry{order};
-            StopEntry dormantStop(entry, order.timeInForce, order.type, order.price);
+            StopEntry dormantStop(order);
             auto& bin = getLimitsBin(order.stopPrice, sellLimitBins);
             bin.addDormantStop(dormantStop);
         }
@@ -120,8 +119,7 @@ void Matcher2::placeStop(const Order2& order){
             placeLimit(entry, order.side, order.price);
         }
         else{
-            BookEntry entry{order};
-            StopEntry dormantStop(entry, order.timeInForce, order.type, order.price);
+            StopEntry dormantStop(order);
             auto& bin = getLimitsBin(order.stopPrice, buyLimitBins);
             bin.addDormantStop(dormantStop);
         }
