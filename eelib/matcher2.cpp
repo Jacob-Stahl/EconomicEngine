@@ -44,7 +44,7 @@ void Matcher2::placeLimit(BookEntry& entry, Side side, int price){
         buyBin.make(entry);
 
         // update spread
-        if(price > spread.highestBid || spread.bidsMissing){
+        if(spread.bidsMissing || price > spread.highestBid){
             spread.highestBid = price;
         }
         spread.bidsMissing = false;
@@ -58,7 +58,7 @@ void Matcher2::placeLimit(BookEntry& entry, Side side, int price){
         auto& sellBin = getLimitsBin(price, sellLimitBins);
         sellBin.make(entry);
 
-        if(price < spread.lowestAsk || spread.asksMissing){
+        if(spread.asksMissing || price < spread.lowestAsk){
             spread.lowestAsk = price;
         }
         spread.asksMissing = false;
