@@ -22,7 +22,7 @@ void Matcher2::placeOrder(const Order2& order){
             if(stopEntry.type == STOPLIMIT){
                 placeLimit(stopEntry.entry, SELL, stopEntry.limitPrice);
             }
-            else{
+            else if(stopEntry.type == STOP){
                 placeMarket(stopEntry.entry, SELL);
             }
         }
@@ -31,7 +31,7 @@ void Matcher2::placeOrder(const Order2& order){
             if(stopEntry.type == STOPLIMIT){
                 placeLimit(stopEntry.entry, BUY, stopEntry.limitPrice);
             }
-            else{
+            else if(stopEntry.type == STOP){
                 placeMarket(stopEntry.entry, BUY);
             }
         }
